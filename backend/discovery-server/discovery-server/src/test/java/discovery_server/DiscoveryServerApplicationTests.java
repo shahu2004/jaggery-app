@@ -1,4 +1,4 @@
-package com.jaggery.discovery_server;
+package discovery_server;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
