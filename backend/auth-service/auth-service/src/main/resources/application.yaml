@@ -26,6 +26,11 @@ management:
     web:
       exposure:
         include: health,info
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
 logging:
   level:
     auth_service: DEBUG
