@@ -1,6 +1,6 @@
 package auth_service.service;
 
-import auth_service.entity.User;
+import auth_service.security.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

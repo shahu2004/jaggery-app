@@ -4,7 +4,7 @@ import auth_service.dto.AuthResponse;
 import auth_service.dto.LoginRequest;
 import auth_service.dto.RegisterRequest;
 import auth_service.entity.Role;
-import auth_service.entity.User;
+import auth_service.security.User;
 import auth_service.exception.ApiException;
 import auth_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

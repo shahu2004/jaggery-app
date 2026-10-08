@@ -1,5 +1,6 @@
-package auth_service.entity;
+package auth_service.security;
 
+import auth_service.entity.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
