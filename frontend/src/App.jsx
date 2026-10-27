@@ -26,6 +26,9 @@ export default function App() {
   const [sellerProducts, setSellerProducts] = useState([]);
   const [catalogPage, setCatalogPage] = useState(0);
   const [catalogPages, setCatalogPages] = useState(0);
+  const [sellerPage, setSellerPage] = useState(0);
+  const [sellerPages, setSellerPages] = useState(0);
+  const [sellerTotal, setSellerTotal] = useState(0);
   const [catalogTotal, setCatalogTotal] = useState(0);
   const [productsLoading, setProductsLoading] = useState(false);
   const [cart, setCart] = useState([]);
@@ -56,9 +59,11 @@ export default function App() {
     }
   };
 
-  const loadSellerProducts = async () => {
-    const data = await api('/api/products/mine?page=0&size=50', { token });
+  const loadSellerProducts = async (pageNumber = sellerPage) => {
+    const data = await api(`/api/products/mine?page=${pageNumber}&size=12`, { token });
     setSellerProducts(data?.content || []);
+    setSellerPages(data?.totalPages || 0);
+    setSellerTotal(data?.totalElements || 0);
   };
 
   const loadProducts = async () => {
@@ -118,7 +123,7 @@ export default function App() {
     if (page === 'seller' && token && user) {
       loadSellerProducts().catch(e => setError(e.message || 'Unable to load seller products.'));
     }
-  }, [page, token, user?.userId]);
+  }, [page, token, user?.userId, sellerPage]);
 
   useEffect(() => {
     if ((page === 'admin' || page === 'seller') && token) {
@@ -210,8 +215,9 @@ export default function App() {
     setProductForm(emptyProduct);
     setEditingId(null);
     setImageFile(null);
+    setSellerPage(0);
     await loadProducts();
-    await loadSellerProducts().catch(e => setError(e.message || 'Product saved, but seller listing did not refresh.'));
+    await loadSellerProducts(0).catch(e => setError(e.message || 'Product saved, but seller listing did not refresh.'));
     setNotice(editingId ? 'Product updated.' : 'Product saved.');
   };
 
@@ -234,8 +240,9 @@ export default function App() {
     if (!window.confirm(`Soft-delete "${product.name}"?`)) return;
     const result = await run(() => api(`/api/products/${product.id}`, { token, method: 'DELETE' }), 'Product marked inactive.');
     if (result) {
+      setSellerPage(0);
       await loadProducts();
-      await loadSellerProducts().catch(e => setError(e.message || 'Product deleted, but seller listing did not refresh.'));
+      await loadSellerProducts(0).catch(e => setError(e.message || 'Product deleted, but seller listing did not refresh.'));
     }
   };
 
@@ -423,7 +430,7 @@ export default function App() {
         {page === 'seller' && <section className="content-section">
           {user?.role === 'CUSTOMER' && <div className="notice warning">Your account is a customer. Seller studio becomes available after an administrator approves your account.</div>}
           {['SELLER','ADMIN'].includes(user?.role) && <>
-            <div className="section-heading"><div><span className="eyebrow">SELLER STUDIO</span><h2>Manage your <em>products.</em></h2></div><span className="count-label">{myProducts.length} products on current listing</span></div>
+            <div className="section-heading"><div><span className="eyebrow">SELLER STUDIO</span><h2>Manage your <em>products.</em></h2></div><span className="count-label">{sellerTotal} products</span></div>
             <div className="seller-layout">
               <form className="form-panel product-editor" onSubmit={productSubmit}>
                 <h3>{editingId ? `Edit product #${editingId}` : 'Add a product'}</h3>
@@ -436,7 +443,7 @@ export default function App() {
                 <div className="card-actions"><button className="button button-primary" disabled={busy}>{editingId ? 'Save changes' : 'Create product'}</button>{editingId && <button type="button" className="button button-secondary" onClick={() => {setEditingId(null);setProductForm(emptyProduct);setImageFile(null);}}>Cancel edit</button>}</div>
                 <p className="hint">Server-side seller ownership checks are required for every write.</p>
               </form>
-              <div className="seller-products"><h3>Your products</h3>{myProducts.length ? <div className="product-grid">{myProducts.map(p => <ProductCard key={p.id} product={p} seller/>)}</div> : <p className="muted">No products owned by your account are present in the current first 50 products.</p>}</div>
+              <div className="seller-products"><h3>Your products</h3>{myProducts.length ? <div className="product-grid">{myProducts.map(p => <ProductCard key={p.id} product={p} seller/>)}</div> : <p className="muted">No active products are owned by your account.</p>}{sellerPages > 1 && <div className="pagination"><button className="button button-secondary compact" disabled={sellerPage <= 0} onClick={() => setSellerPage(p => Math.max(0, p - 1))}>Previous</button><span>Page {sellerPage + 1} of {sellerPages}</span><button className="button button-secondary compact" disabled={sellerPage + 1 >= sellerPages} onClick={() => setSellerPage(p => Math.min(sellerPages - 1, p + 1))}>Next</button></div>}</div>
             </div>
           </>}
         </section>}
