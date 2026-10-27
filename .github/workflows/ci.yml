@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -62,6 +66,14 @@ jobs:
 
       - name: Test Discovery Server
         working-directory: backend/discovery-server/discovery-server
+        run: |
+          chmod +x mvnw
+          ./mvnw --batch-mode test
+
+      - name: Test API Gateway
+        working-directory: backend/api-gateway/api-gateway
+        env:
+          EUREKA_URL: http://127.0.0.1:8761/eureka
         run: |
           chmod +x mvnw
           ./mvnw --batch-mode test
