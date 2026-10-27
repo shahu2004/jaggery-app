@@ -52,6 +52,14 @@ public class ProductController {
                 page, size, search, type, minPrice, maxPrice, categoryId, sortBy, direction));
     }
 
+    @GetMapping("/mine")
+    public ResponseEntity<PageResponse<ProductResponse>> mine(
+            @AuthenticationPrincipal ProductPrincipal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(productService.listMine(principal.userId(), page, size));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(productService.get(id));
