@@ -32,9 +32,11 @@ management:
         include: health,info
 
 app:
+  jwt:
+    secret: ${JWT_SECRET}
   upload:
     dir: ${UPLOAD_DIR:./uploads}
 
 logging:
   level:
-    product_service: DEBUG
+    product_service: INFO
