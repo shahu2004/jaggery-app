@@ -22,6 +22,9 @@ export default function App() {
   const [sortBy, setSortBy] = useState('id');
   const [direction, setDirection] = useState('desc');
   const [products, setProducts] = useState([]);
+  const [catalogPage, setCatalogPage] = useState(0);
+  const [catalogPages, setCatalogPages] = useState(0);
+  const [catalogTotal, setCatalogTotal] = useState(0);
   const [productsLoading, setProductsLoading] = useState(false);
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -53,13 +56,15 @@ export default function App() {
   const loadProducts = async () => {
     setProductsLoading(true);
     try {
-      const params = new URLSearchParams({ page: '0', size: '50', sortBy, direction });
+      const params = new URLSearchParams({ page: String(catalogPage), size: '12', sortBy, direction });
       if (search.trim()) params.set('search', search.trim());
       if (type) params.set('type', type);
       if (minPrice !== '') params.set('minPrice', minPrice);
       if (maxPrice !== '') params.set('maxPrice', maxPrice);
       const data = await api(`/api/products?${params.toString()}`);
       setProducts(data?.content || []);
+      setCatalogPages(data?.totalPages || 0);
+      setCatalogTotal(data?.totalElements || 0);
     } catch (e) {
       setError(e?.message || 'Unable to load products.');
       setProducts([]);
@@ -68,7 +73,7 @@ export default function App() {
     }
   };
 
-  useEffect(() => { loadProducts(); }, [search, type, minPrice, maxPrice, sortBy, direction]);
+  useEffect(() => { loadProducts(); }, [search, type, minPrice, maxPrice, sortBy, direction, catalogPage]);
 
   useEffect(() => {
     if (page !== 'cart' || !token) return;
@@ -103,7 +108,7 @@ export default function App() {
   }, [page, token, user?.userId]);
 
   useEffect(() => {
-    if (page === 'admin' && token) {
+    if ((page === 'admin' || page === 'seller') && token) {
       api('/api/categories', { token }).then(setCategories).catch(e => setError(e.message || 'Unable to load categories.'));
     }
   }, [page, token]);
@@ -210,7 +215,7 @@ export default function App() {
   const deleteProduct = async (product) => {
     if (!window.confirm(`Soft-delete "${product.name}"?`)) return;
     const result = await run(() => api(`/api/products/${product.id}`, { token, method: 'DELETE' }), 'Product marked inactive.');
-    if (result !== null) {
+    if (result) {
       await loadProducts();
     }
   };
@@ -231,7 +236,7 @@ export default function App() {
 
   const removeCartItem = async (productId) => {
     const result = await run(() => api(`/api/cart/items/${productId}`, { token, method: 'DELETE' }), 'Item removed from cart.');
-    if (result !== null) {
+    if (result) {
       const rows = await api('/api/cart', { token });
       const hydrated = await Promise.all((rows || []).map(async row => {
         try { return { ...row, product: await api(`/api/products/${row.productId}`) }; }
@@ -330,18 +335,19 @@ export default function App() {
             <div className="hero-bottom"><span>Small-batch feel</span><span>Everyday essentials</span><span>Made for real kitchens</span></div>
           </section>
           <section id="catalog" className="catalog-section">
-            <div className="section-heading"><div><span className="eyebrow">THE MARKETPLACE</span><h2>Find your favourite <em>jaggery.</em></h2></div><span className="count-label">{products.length} products shown</span></div>
+            <div className="section-heading"><div><span className="eyebrow">THE MARKETPLACE</span><h2>Find your favourite <em>jaggery.</em></h2></div><span className="count-label">{catalogTotal} products found</span></div>
             <div className="filters">
-              <label className="search-field"><span>⌕</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products..." aria-label="Search products"/></label>
-              <select value={type} onChange={e => setType(e.target.value)} aria-label="Filter product type"><option value="">All types</option>{TYPES.map(t => <option key={t}>{t}</option>)}</select>
-              <input className="price-filter" type="number" min="0" value={minPrice} onChange={e => setMinPrice(e.target.value)} placeholder="Min ₹" aria-label="Minimum price"/>
-              <input className="price-filter" type="number" min="0" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} placeholder="Max ₹" aria-label="Maximum price"/>
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)} aria-label="Sort products"><option value="id">Latest</option><option value="name">Name</option><option value="price">Price</option><option value="createdAt">Date added</option></select>
-              <button className="button button-secondary compact" onClick={() => setDirection(direction === 'asc' ? 'desc' : 'asc')}>{direction === 'asc' ? '↑ Asc' : '↓ Desc'}</button>
+              <label className="search-field"><span>⌕</span><input value={search} onChange={e => { setSearch(e.target.value); setCatalogPage(0); }} placeholder="Search products..." aria-label="Search products"/></label>
+              <select value={type} onChange={e => { setType(e.target.value); setCatalogPage(0); }} aria-label="Filter product type"><option value="">All types</option>{TYPES.map(t => <option key={t}>{t}</option>)}</select>
+              <input className="price-filter" type="number" min="0" value={minPrice} onChange={e => { setMinPrice(e.target.value); setCatalogPage(0); }} placeholder="Min ₹" aria-label="Minimum price"/>
+              <input className="price-filter" type="number" min="0" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setCatalogPage(0); }} placeholder="Max ₹" aria-label="Maximum price"/>
+              <select value={sortBy} onChange={e => { setSortBy(e.target.value); setCatalogPage(0); }} aria-label="Sort products"><option value="id">Latest</option><option value="name">Name</option><option value="price">Price</option><option value="createdAt">Date added</option></select>
+              <button className="button button-secondary compact" onClick={() => { setDirection(direction === 'asc' ? 'desc' : 'asc'); setCatalogPage(0); }}>{direction === 'asc' ? '↑ Asc' : '↓ Desc'}</button>
             </div>
             {productsLoading ? <div className="empty-state">Loading fresh products…</div>
               : products.length ? <div className="product-grid">{products.map(p => <ProductCard key={p.id} product={p}/>)}</div>
-              : <div className="empty-state"><span>🌾</span><h3>No products found</h3><p>Try a different search or filter.</p><button className="button button-secondary" onClick={() => { setSearch(''); setType(''); setMinPrice(''); setMaxPrice(''); }}>Clear filters</button></div>}
+              : <div className="empty-state"><span>🌾</span><h3>No products found</h3><p>Try a different search or filter.</p><button className="button button-secondary" onClick={() => { setSearch(''); setType(''); setMinPrice(''); setMaxPrice(''); setCatalogPage(0); }}>Clear filters</button></div>}
+            {!productsLoading && catalogPages > 1 && <div className="pagination"><button className="button button-secondary compact" disabled={catalogPage <= 0} onClick={() => setCatalogPage(p => Math.max(0, p - 1))}>Previous</button><span>Page {catalogPage + 1} of {catalogPages}</span><button className="button button-secondary compact" disabled={catalogPage + 1 >= catalogPages} onClick={() => setCatalogPage(p => Math.min(catalogPages - 1, p + 1))}>Next</button></div>}
           </section>
         </>}
 
