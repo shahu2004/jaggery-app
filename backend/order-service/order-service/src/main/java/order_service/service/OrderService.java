@@ -1,4 +1,5 @@
 package order_service.service;
+import order_service.dto.AdminOrderResponse;
 import order_service.dto.OrderResponse;
 import order_service.dto.ProductSnapshot;
 import order_service.entity.CartItem;
@@ -8,6 +9,7 @@ import order_service.entity.PurchaseOrder;
 import order_service.repository.CartItemRepository;
 import order_service.repository.PurchaseOrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,14 @@ public class OrderService {
         carts.deleteAllByUserId(userId);
         return OrderResponse.from(saved);
     }
+    @Transactional(readOnly = true)
+    public List<AdminOrderResponse> getAllOrdersForAdmin() {
+        return orders.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(AdminOrderResponse::from)
+                .toList();
+    }
+
     @Transactional(readOnly=true)
     public List<OrderResponse> getOrders(Long userId){
         return orders.findAllByUserIdOrderByCreatedAtDesc(userId).stream().map(OrderResponse::from).toList();
