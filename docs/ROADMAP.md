@@ -11,7 +11,7 @@
 - Maven Wrapper included in each service.
 - Application configuration supports environment variables for database, JWT and Eureka settings.
 
-### Added on this branch (latest full CI pending)
+### Added on this branch (latest code changes require CI and runtime verification)
 - API Gateway on port 8080 with Eureka routes and development CORS
 - Order Service initial implementation: cart, checkout snapshot, order history, cancellation and status workflow
 - React/Vite frontend with catalog, auth, cart, test checkout, order history, seller tools and admin seller approvals
@@ -67,7 +67,7 @@
 ### Phase 4 — Cart and Order Service (initial implementation added on this branch; verification pending)
 - [x] Create a separate Spring Boot service and MySQL database for cart/order data.
 - [x] Add cart and cart-item models, repository, service and APIs.
-- [ ] Validate product existence and price from trusted server-side product data.
+- [x] Validate product existence when adding cart items and read trusted product prices again at checkout.
 - [x] Create order and order-item snapshots using server-read product prices at checkout.
 - [x] Implement order history, customer cancellation before confirmation, and controlled status transitions.
 - [ ] Prevent negative stock/overselling if inventory is added.
@@ -79,9 +79,9 @@
 
 ### Phase 5 — React frontend (initial implementation added on this branch; verification pending)
 - [x] Set up React with Vite.
-- [x] Build a product listing with search, filtering, and sorting (pagination UI is still pending).
+- [x] Build a product listing with search, type/category/price filters, sorting and pagination.
 - [x] Build registration/login screens and bearer-token session handling.
-- [x] Build seller product CRUD and image upload screens (requires approved seller role).
+- [x] Build seller product CRUD and image upload screens (requires approved seller role), backed by an authenticated seller-owned listing endpoint with pagination.
 - [x] Build cart, simulated checkout, order history and cancellation views.
 - [x] Build administrator category creation view.
 - [ ] Keep permissions enforced server-side; protected/hide-only frontend routes are not security.
@@ -116,6 +116,6 @@
 This schedule is an estimate; do not move to the next phase until the current phase's exit criteria are met.
 
 ## Current critical risks
-- Latest full CI is still being verified. Do not merge/deploy until it passes.
+- Latest CI must pass for the newest commit, followed by local Compose startup and manual browser smoke testing. Do not merge/deploy based on an older successful run.
 - The local Compose configuration is not a production hardening setup; it uses a root DB account and Hibernate schema auto-update.
 - Order checkout currently has no stock reservation or idempotency protection and does not process payments.
