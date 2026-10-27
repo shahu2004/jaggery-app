@@ -1,6 +1,7 @@
 package auth_service.service;
 
 import auth_service.dto.ProfileResponse;
+import auth_service.entity.Role;
 import auth_service.security.User;
 import auth_service.exception.ApiException;
 import auth_service.repository.UserRepository;
@@ -29,6 +30,19 @@ public class UserService {
         return userRepository.findAll().stream()
                 .map(this::toProfile)
                 .toList();
+    }
+
+    @Transactional
+    public ProfileResponse approveSeller(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.getRole() == Role.ADMIN) {
+            throw new ApiException(HttpStatus.CONFLICT, "Administrator accounts cannot be changed by seller approval");
+        }
+
+        user.setRole(Role.SELLER);
+        return toProfile(userRepository.save(user));
     }
 
     private ProfileResponse toProfile(User user) {
