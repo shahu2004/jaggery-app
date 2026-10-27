@@ -49,6 +49,8 @@ For each Spring service, choose its own Dockerfile and Docker context:
 
 ## 4. Required smoke test after deployment
 
+For a Windows smoke test, run `./scripts/verify-local.ps1 -BaseUrl https://YOUR-GATEWAY-URL -FrontendUrl https://YOUR-FRONTEND-URL`. Replace both placeholders with actual HTTPS origins.
+
 Run the following from the browser/Postman using the deployed gateway:
 1. `GET /api/products?page=0&size=12` returns a page (empty catalog is acceptable).
 2. Register a new account and log in; the response should return a bearer token and the role should be `CUSTOMER`.

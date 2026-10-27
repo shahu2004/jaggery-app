@@ -15,6 +15,7 @@ This Compose configuration is for local development/demo, not a production deplo
    ```
 
 5. Open the frontend at http://localhost:5173, API Gateway at http://localhost:8080 and Eureka dashboard at http://localhost:8761.
+6. In a second PowerShell window, run `./scripts/verify-local.ps1` to check frontend, gateway, registration/JWT/profile, and (if a product exists) cart, test checkout and order history.
 
 Useful commands:
 
@@ -29,6 +30,8 @@ The named volumes preserve MySQL data and uploaded product images across contain
 ## First administrator for local testing
 
 Public registration creates CUSTOMER accounts. Follow [docs/LOCAL_ADMIN_BOOTSTRAP.md](docs/LOCAL_ADMIN_BOOTSTRAP.md) to promote a local development account to ADMIN with local-only SQL. Do not expose MySQL publicly or use the manual development procedure in production.
+
+Cloud-hosting setup and platform-port notes are in [docs/RENDER_RAILWAY_DEPLOYMENT.md](docs/RENDER_RAILWAY_DEPLOYMENT.md).
 
 ## Before public/production deployment
 

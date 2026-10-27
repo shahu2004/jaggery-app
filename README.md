@@ -134,4 +134,4 @@ This still needs a full security review and integration testing. Before public d
 
 ## Development roadmap
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the phased implementation checklist and remaining work. Local deployment instructions are in [DEPLOYMENT.md](DEPLOYMENT.md).
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the phased implementation checklist and remaining work. Local deployment instructions are in [DEPLOYMENT.md](DEPLOYMENT.md), cloud guidance is in [docs/RENDER_RAILWAY_DEPLOYMENT.md](docs/RENDER_RAILWAY_DEPLOYMENT.md), and the smoke-test script is [scripts/verify-local.ps1](scripts/verify-local.ps1).
