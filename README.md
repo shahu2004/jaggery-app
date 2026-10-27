@@ -89,11 +89,12 @@ cd backend\product-service\product-service
 $env:DB_URL = "jdbc:mysql://localhost:3306/jaggery_product?useSSL=false&serverTimezone=Asia/Kolkata"
 $env:DB_USERNAME = "root"
 $env:DB_PASSWORD = "<your-local-mysql-password>"
+$env:JWT_SECRET = "<the-same-random-secret-used-by-auth-service>"
 $env:EUREKA_URL = "http://localhost:8761/eureka"
 .\mvnw.cmd spring-boot:run
 ```
 
-Replace placeholders with local values. Do not paste secrets into source files. If the Maven Wrapper fails, check that JDK 21 is selected and that Maven Wrapper files are present.
+The Auth Service and Product Service must use the exact same JWT_SECRET value. Replace placeholders with local values. Do not paste secrets into source files. If the Maven Wrapper fails, check that JDK 21 is selected and that Maven Wrapper files are present.
 
 ## Security and readiness notes
 
