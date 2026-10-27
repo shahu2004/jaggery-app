@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { api, imageUrl } from './api.js';
 
 const TYPES = ['BLOCK', 'CUBE', 'POWDER', 'ORGANIC', 'LIQUID'];
+const NEXT_ORDER_STATUSES = {
+  PLACED: ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED: ['SHIPPED', 'CANCELLED'],
+  SHIPPED: ['DELIVERED'],
+  DELIVERED: [],
+  CANCELLED: [],
+};
 const money = (value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(Number(value || 0));
 const emptyProduct = { name: '', description: '', type: 'BLOCK', price: '', weightGrams: '1000', categoryId: '', imageUrl: '' };
 
@@ -33,6 +40,7 @@ export default function App() {
   const [productsLoading, setProductsLoading] = useState(false);
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [adminOrders, setAdminOrders] = useState([]);
   const [categories, setCategories] = useState([]);
   const [adminUsers, setAdminUsers] = useState([]);
   const [authMode, setAuthMode] = useState('login');
@@ -131,6 +139,7 @@ export default function App() {
     }
     if (page === 'admin' && token && user?.role === 'ADMIN') {
       api('/api/users', { token }).then(setAdminUsers).catch(e => setError(e.message || 'Unable to load user accounts.'));
+      api('/api/orders/admin/all', { token }).then(setAdminOrders).catch(e => setError(e.message || 'Unable to load admin orders.'));
     }
   }, [page, token, user?.role]);
 
@@ -284,6 +293,20 @@ export default function App() {
   const cancelOrder = async (id) => {
     const result = await run(() => api(`/api/orders/${id}/cancel`, { token, method: 'POST' }), 'Order cancelled.');
     if (result) await loadOrders().catch(e => setError(e.message));
+  };
+
+  const changeOrderStatus = async (id, status) => {
+    const result = await run(
+      () => api(`/api/orders/${id}/status`, { token, method: 'PATCH', body: { status } }),
+      `Order #${id} updated to ${status}.`,
+    );
+    if (result) {
+      const refreshed = await api('/api/orders/admin/all', { token }).catch(e => {
+        setError(e.message || 'Order updated, but the admin list did not refresh.');
+        return null;
+      });
+      if (refreshed) setAdminOrders(refreshed);
+    }
   };
 
   const approveSeller = async (id) => {
@@ -454,6 +477,7 @@ export default function App() {
             <form className="form-panel" onSubmit={createCategory}><h3>Create category</h3><label>Category name<input required maxLength="100" value={categoryName} onChange={e => setCategoryName(e.target.value)}/></label><button className="button button-primary" disabled={busy}>Create category</button></form>
             <div className="category-panel"><h3>Current categories</h3>{categories.length ? categories.map(c => <div className="category-row" key={c.id}><span>{c.name}</span><small>#{c.id}</small></div>) : <p className="muted">No categories yet.</p>}</div>
             <div className="category-panel seller-approval-panel"><h3>Seller approvals</h3><p className="hint">Review customer accounts before granting seller access.</p>{pendingSellers.length ? pendingSellers.map(account => <div className="category-row approval-row" key={account.id}><span><strong>{account.name}</strong><small>{account.email}</small></span><button type="button" className="button button-secondary compact" disabled={busy} onClick={() => approveSeller(account.id)}>Approve seller</button></div>) : <p className="muted">No customer accounts awaiting seller approval.</p>}</div>
+            <div className="category-panel admin-orders-panel"><h3>All orders</h3><p className="hint">Review customer orders and apply only permitted status transitions.</p>{adminOrders.length ? adminOrders.map(order => <div className="category-row approval-row" key={order.id}><span><strong>Order #{order.id} · Customer #{order.userId}</strong><small>{(order.items || []).map(item => `${item.productName} × ${item.quantity}`).join(', ')} · {money(order.totalAmount)}</small></span><select aria-label={`Update status for order ${order.id}`} value={order.status} disabled={busy || !(NEXT_ORDER_STATUSES[order.status] || []).length} onChange={e => changeOrderStatus(order.id, e.target.value)}><option value={order.status}>{order.status}</option>{(NEXT_ORDER_STATUSES[order.status] || []).map(status => <option key={status} value={status}>{status}</option>)}</select></div>) : <p className="muted">No orders have been placed yet.</p>}</div>
           </div>
         </section>}
 
