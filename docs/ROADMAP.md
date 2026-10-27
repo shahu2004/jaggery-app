@@ -11,18 +11,18 @@
 - Maven Wrapper included in each service.
 - Application configuration supports environment variables for database, JWT and Eureka settings.
 
-### Added on this branch (verification pending)
-- API Gateway skeleton on port 8080 with Eureka routes and development CORS
+### Added on this branch (latest full CI pending)
+- API Gateway on port 8080 with Eureka routes and development CORS
 - Order Service initial implementation: cart, checkout snapshot, order history, cancellation and status workflow
+- React/Vite frontend with catalog, auth, cart, test checkout, order history, seller tools and admin seller approvals
+- Dockerfiles, Docker Compose local stack and deployment notes
 
-### Not yet present in repository tree
-- Real payment provider integration
+### Remaining work
+- Real payment provider integration (only after order flow is reliable)
 - Production email notifications, inventory/stock tracking and audit trail
- - React/Vite frontend screens and initial API integration (added on this branch; build verification pending)
-- Root README with setup/security notes (added on this branch)
-- Local Docker Compose files and container definitions (added on this branch; testing pending)
-- GitHub Actions workflow (added on this branch; latest run pending)
-- Meaningful automated tests beyond context-load tests
+- HTTP integration/security tests for the complete end-to-end flow
+- Production secrets, database migrations, private networking and image object storage
+- Live deployment and manual browser-based smoke tests
 
 ## Delivery sequence
 
@@ -36,10 +36,10 @@
 **Exit criteria:** all known build failures and configuration blockers are written down.
 
 ### Phase 1 — Security before features (highest priority)
-- [ ] Stop trusting caller-controlled X-User-Id and X-User-Role values as identity proof.
-- [ ] Validate JWT signatures and expiry at the Product Service boundary, or implement a verified trusted gateway boundary and prevent direct service access.
-- [ ] Derive user identity and roles only from verified authentication.
-- [ ] Keep public registration from assigning privileged roles; define seller approval policy.
+- [x] Stop trusting caller-controlled X-User-Id and X-User-Role values as identity proof.
+- [x] Validate JWT signatures and expiry at the Product Service boundary.
+- [x] Derive product write identity and roles from the verified principal.
+- [x] Public registration assigns CUSTOMER only; seller approval is administrator-only.
 - [ ] Test unauthenticated, invalid-token, expired-token and incorrect-role behavior.
 - [ ] Confirm sellers can modify only their own products and only admins can manage categories.
 
@@ -55,10 +55,10 @@
 **Exit criteria:** core product behaviors are covered by reproducible automated tests.
 
 ### Phase 3 — API Gateway
-- [ ] Add Spring Cloud Gateway on port 8080 with versions compatible with the existing Spring Boot/Cloud line.
-- [ ] Route /api/auth/** and /api/users/** to Auth Service.
-- [ ] Route /api/products/** and /api/categories/** to Product Service.
-- [ ] Configure frontend CORS origins deliberately.
+- [x] Add Spring Cloud Gateway on port 8080 with versions compatible with the existing Spring Boot/Cloud line.
+- [x] Route /api/auth/** and /api/users/** to Auth Service.
+- [x] Route /api/products/** and /api/categories/** to Product Service.
+- [x] Configure frontend CORS origins deliberately for local development.
 - [ ] Keep internal service ports private in deployed environments.
 - [ ] Add health checks and avoid logging passwords or bearer tokens.
 
@@ -92,7 +92,7 @@
 ### Phase 6 — Quality, delivery and deployment
 - [ ] Add meaningful JUnit/Mockito unit tests and HTTP integration tests.
 - [ ] Verify GitHub Actions builds/tests all services and the frontend on pushes and pull requests.
-- [ ] Add sample environment file with placeholders only; never commit real secrets.
+- [x] Add sample environment file with placeholders only; never commit real secrets.
 - [ ] Use database migrations and least-privilege DB users.
 - [ ] Use persistent or object storage for product images on cloud deployments.
 - [ ] Deploy each service, gateway, database and frontend with private network/service settings where possible.
@@ -115,5 +115,7 @@
 
 This schedule is an estimate; do not move to the next phase until the current phase's exit criteria are met.
 
-## Current critical risk
-The Product Service currently receives X-User-Id and X-User-Role headers on write operations. Caller-supplied headers are not proof of identity. Fix and test this before exposing the service beyond trusted local development.
+## Current critical risks
+- Latest full CI is still being verified. Do not merge/deploy until it passes.
+- The local Compose configuration is not a production hardening setup; it uses a root DB account and Hibernate schema auto-update.
+- Order checkout currently has no stock reservation or idempotency protection and does not process payments.

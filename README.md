@@ -1,143 +1,137 @@
-# Jaggery App
+# Jaggery App — Marketplace MVP
 
-A Java 21 / Spring Boot backend for a jaggery marketplace. This repository is under active development; the backend services exist, while the end-to-end marketplace experience is still being completed.
+A portfolio project for a jaggery marketplace using Java 21, Spring Boot, Spring Security, JWT, Spring Data JPA, MySQL, Spring Cloud Gateway, Eureka and React/Vite.
 
-## Current architecture
+> **Status:** MVP under active development on `feature/mvp-completion-roadmap`. The backend services, initial cart/order flow and frontend have been added on this branch. Run the latest GitHub Actions checks and manually verify the complete flow before merging or deploying publicly. Payment processing is simulated; this app does not take real payments.
 
-| Service | Local port | Responsibility |
+## Architecture
+
+| Component | Local port | Purpose |
 |---|---:|---|
-| Discovery Server (Eureka) | 8761 | Registers and discovers backend services |
-| Auth Service | 8081 | Registration, login, BCrypt password hashing, JWT issuance, user profile APIs and role checks |
-| Product Service | 8082 | Product/category APIs, search, filters, pagination, sorting, soft delete and image uploads |
-| API Gateway | 8080 | Routes frontend API requests to backend services; handles development CORS |
-| Order Service | 8083 | Cart, checkout snapshots, customer order history and order-status workflow (initial MVP implementation) |
-| React Frontend | 5173 | Product catalog, auth screens, cart, test checkout, order history, seller studio and admin categories |
+| React/Vite frontend | 5173 | Catalog, sign-in, cart, test checkout, order history, seller studio and admin pages |
+| API Gateway | 8080 | Routes `/api/**` requests to the services and handles development CORS |
+| Auth Service | 8081 | Registration, login, BCrypt password hashing, JWT and user/seller administration |
+| Product Service | 8082 | Product/category APIs, search, type/price/category filters, pagination, sorting, soft delete and image upload |
+| Order Service | 8083 | User cart, server-priced checkout snapshots, order history, cancellation and order status |
+| Eureka Discovery Server | 8761 | Service registry |
+| MySQL | 3306 | Separate `jaggery_auth`, `jaggery_product` and `jaggery_order` databases |
 
-Backend services are in `backend/`; the React/Vite UI is in `frontend/`. The API Gateway, initial Order Service and frontend are present on this branch. End-to-end verification, production deployment and payment processing remain incomplete.
+## Run all components locally (recommended)
 
-## Frontend (React + Vite)\n\nSee [frontend/README.md](frontend/README.md). Configure `VITE_API_BASE_URL` to your gateway URL; local default is `http://localhost:8080`.\n\n## Tech stack
+### Prerequisites
+
+- Docker Desktop with Docker Compose
+- Git and this repository
+- A browser
+
+### Start
+
+1. Copy `.env.example` to `.env` in the repository root.
+2. Replace `MYSQL_ROOT_PASSWORD` with a local password and `JWT_SECRET` with a random secret of at least 32 bytes. Do not commit `.env`.
+3. From the repository root, run:
+
+```bash
+docker compose config
+docker compose up --build
+```
+
+4. Open:
+   - Frontend: http://localhost:5173
+   - API Gateway: http://localhost:8080
+   - Eureka dashboard: http://localhost:8761
+
+MySQL is bound to localhost only. The backend service ports are internal to the Compose network; only the frontend, gateway and local Eureka dashboard are published. Docker volumes preserve the local database and uploaded images.
+
+### Useful commands
+
+```bash
+docker compose ps
+docker compose logs -f auth-service product-service order-service api-gateway
+docker compose down
+```
+
+`docker compose down -v` deletes the local database and image volumes. Use it only when you intentionally want to erase the local data.
+
+## Local administrator setup
+
+Public registration creates a `CUSTOMER` account. To test admin features locally, follow [docs/LOCAL_ADMIN_BOOTSTRAP.md](docs/LOCAL_ADMIN_BOOTSTRAP.md). This uses a local-only database procedure for development; do not expose MySQL publicly or use that manual process in production.
+
+Admin users can approve customers as sellers through `POST /api/users/{id}/approve-seller`. After role approval, the user must sign in again to receive a JWT with the updated role.
+
+## Frontend
+
+See [frontend/README.md](frontend/README.md). The frontend defaults to `VITE_API_BASE_URL=http://localhost:8080`. For a deployed frontend, set `VITE_API_BASE_URL` to the public HTTPS gateway URL **at build time**, and set `FRONTEND_ORIGIN` to the exact frontend origin.
+
+Available frontend flows:
+- Product catalog, search, filters, sorting and pagination
+- Register/login
+- Cart and simulated checkout using server-read product prices
+- Order history and cancellation while status is `PLACED`
+- Seller product CRUD and image upload for approved sellers
+- Admin category management and seller approval
+
+## Existing API endpoints
+
+### Auth Service (through gateway at port 8080)
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/users/me`
+- `GET /api/users` — admin-only
+- `POST /api/users/{id}/approve-seller` — admin-only
+
+### Product Service
+
+- `GET /api/products` — supports page, size, search, type, minPrice, maxPrice, categoryId, sortBy and direction
+- `GET /api/products/{id}`
+- `POST /api/products`
+- `PUT /api/products/{id}`
+- `DELETE /api/products/{id}` — soft delete
+- `POST /api/products/{id}/image`
+- `GET /api/products/images/{filename}`
+- `GET /api/categories`
+- `POST /api/categories` — admin-only
+
+### Order Service
+
+All cart/order endpoints require a valid bearer token:
+- `GET /api/cart`
+- `POST /api/cart/items`
+- `PUT /api/cart/items/{productId}`
+- `DELETE /api/cart/items/{productId}`
+- `POST /api/orders/checkout` — test checkout, no payment is collected
+- `GET /api/orders`
+- `GET /api/orders/{id}` — only the owning customer can read their order
+- `POST /api/orders/{id}/cancel` — cancellation allowed while `PLACED`
+- `PATCH /api/orders/{id}/status` — admin-only permitted transitions
+
+Use the gateway URL from the browser frontend; direct localhost service ports are useful for local debugging only.
+
+## Tech stack
 
 - Java 21
-- Spring Boot and Spring Cloud Netflix Eureka
-- Spring Security and JSON Web Tokens (JWT)
+- Spring Boot / Spring Cloud
+- Spring Security, JWT and BCrypt
 - Spring Data JPA / Hibernate
 - MySQL
-- Maven Wrapper
-- JUnit / Spring Boot test starters (the existing tests are currently basic context-load tests)
+- React, Vite and CSS
+- Maven Wrapper, JUnit, Mockito and GitHub Actions
+- Docker and Docker Compose
 
-## Existing API surface
+## Security and production readiness
 
-### Auth Service — `http://localhost:8081`
+The completion branch validates bearer JWTs in Product Service and Order Service. Product write endpoints derive user ID/role from the verified JWT principal rather than trusting caller-supplied identity headers. Public registration assigns `CUSTOMER`, and seller approval is admin-only.
 
-- `GET /api/auth/ping` — service status
-- `POST /api/auth/register` — register a user
-- `POST /api/auth/login` — authenticate and receive a bearer token
-- `GET /api/users/me` — retrieve the authenticated user's profile
-- `GET /api/users` — administrator-only user listing
+This still needs a full security review and integration testing. Before public deployment:
+- Pass the latest CI workflow and complete manual end-to-end testing.
+- Use TLS/HTTPS, rate limiting and platform-managed secrets; never use the sample secrets.
+- Use a least-privilege database account per service instead of MySQL root.
+- Keep Eureka, MySQL and backend ports private. Expose only intended gateway/frontend endpoints.
+- Replace Hibernate `ddl-auto=update` with versioned database migrations and schema validation.
+- Use persistent/object storage for images in the target hosting environment.
+- Add inventory concurrency/stock checks, checkout idempotency and a real payment provider before accepting actual payments.
+- Add broader HTTP integration tests, backups/restore validation and an audit trail for role/order changes.
 
-### Product Service — `http://localhost:8082`
+## Development roadmap
 
-- `GET /api/products` — paginated product list with optional search, type, minimum/maximum price, category and sort parameters
-- `GET /api/products/{id}` — product details
-- `POST /api/products` — create a product
-- `PUT /api/products/{id}` — update a product
-- `DELETE /api/products/{id}` — soft-delete a product
-- `POST /api/products/{id}/image` — upload a product image
-- `GET /api/products/images/{filename}` — retrieve an uploaded image
-- `GET /api/categories` — list categories
-- `POST /api/categories` — create a category
-
-For write APIs, inspect the source and the security notes below before exposing them outside localhost.
-
-## Local prerequisites
-
-For an all-in-one local development stack, see [DEPLOYMENT.md](DEPLOYMENT.md) and `docker-compose.yml`. Copy `.env.example` to `.env`, set local secrets, then run `docker compose up --build`. This Compose stack is for local development, not production.
-
-For an all-in-one local development stack, see [DEPLOYMENT.md](DEPLOYMENT.md) and `docker-compose.yml`. Copy `.env.example` to `.env`, set local secrets, then run `docker compose up --build`. The Compose stack is not a production security configuration.
-
-- JDK 21
-- MySQL running locally
-- Create databases named `jaggery_auth` and `jaggery_product`
-- PowerShell on Windows, or a shell that can run the Maven Wrapper
-
-The services read configuration from environment variables. Common variables include:
-
-- Auth Service: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION_MS`, `EUREKA_URL`
-- Product Service: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `DDL_AUTO`, `EUREKA_URL`, `UPLOAD_DIR`
-
-Use a random JWT secret of at least 32 bytes for local development. Never commit actual passwords, JWT secrets, production credentials or tokens.
-
-### Run locally on Windows
-
-Open three PowerShell terminals from the repository root.
-
-**1. Eureka Discovery Server**
-```powershell
-cd backend\discovery-server\discovery-server
-.\mvnw.cmd spring-boot:run
-```
-
-**2. Auth Service**
-Set the environment variables before starting the service. Point `DB_URL` to the `jaggery_auth` database and `JWT_SECRET` to a secure local-only value.
-```powershell
-cd backend\auth-service\auth-service
-$env:DB_URL = "jdbc:mysql://localhost:3306/jaggery_auth?useSSL=false&serverTimezone=Asia/Kolkata"
-$env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "<your-local-mysql-password>"
-$env:JWT_SECRET = "<a-random-secret-of-at-least-32-bytes>"
-$env:EUREKA_URL = "http://localhost:8761/eureka"
-.\mvnw.cmd spring-boot:run
-```
-
-**3. Product Service**
-Use the `jaggery_product` database and set its own database environment variables.
-```powershell
-cd backend\product-service\product-service
-$env:DB_URL = "jdbc:mysql://localhost:3306/jaggery_product?useSSL=false&serverTimezone=Asia/Kolkata"
-$env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "<your-local-mysql-password>"
-$env:JWT_SECRET = "<the-same-random-secret-used-by-auth-service>"
-$env:EUREKA_URL = "http://localhost:8761/eureka"
-.\mvnw.cmd spring-boot:run
-```
-
-**4. API Gateway**
-Start this service after Eureka. It listens on port 8080 and routes auth/user requests to Auth Service and product/category requests to Product Service.
-```powershell
-cd backend\api-gateway\api-gateway
-$env:EUREKA_URL = "http://localhost:8761/eureka"
-$env:FRONTEND_ORIGIN = "http://localhost:5173"
-.\mvnw.cmd spring-boot:run
-```
-
-**5. Order Service**
-Set `DB_URL` to the `jaggery_order` database and use the exact same JWT secret as Auth Service and Product Service. Configure `PRODUCT_SERVICE_URL` for the address Order Service can use to reach Product Service.
-```powershell
-cd backend\\order-service\\order-service
-$env:DB_URL = "jdbc:mysql://localhost:3306/jaggery_order?useSSL=false&serverTimezone=Asia/Kolkata"
-$env:DB_USERNAME = "root"
-$env:DB_PASSWORD = "<your-local-mysql-password>"
-$env:JWT_SECRET = "<the-same-random-secret-used-by-auth-service>"
-$env:PRODUCT_SERVICE_URL = "http://localhost:8082"
-$env:EUREKA_URL = "http://localhost:8761/eureka"
-.\\mvnw.cmd spring-boot:run
-```
-
-**Order APIs** (all require a valid bearer token): `GET /api/cart`, `POST /api/cart/items`, `PUT /api/cart/items/{productId}`, `DELETE /api/cart/items/{productId}`, `POST /api/orders/checkout`, `GET /api/orders`, `GET /api/orders/{id}`, `POST /api/orders/{id}/cancel`. Admins can update valid status transitions with `PATCH /api/orders/{id}/status`.
-
-The Auth Service, Product Service and Order Service must use the exact same JWT_SECRET value. Replace placeholders with local values. Do not paste secrets into source files. If the Maven Wrapper fails, check that JDK 21 is selected and that Maven Wrapper files are present.
-
-## Security and readiness notes
-
-This project is a work in progress and must not be treated as production-ready until these items are addressed:
-
-1. The completion branch adds JWT validation at the Product Service boundary and derives product write identity from the verified principal. Run the build and security tests and review the gateway/direct-network design before exposing it publicly.
-2. Public registration now always assigns CUSTOMER. An authorized seller-onboarding and initial-admin provisioning workflow is still required.
-3. Add broader unit and integration tests for authentication, authorization, product CRUD, filtering, pagination, categories and image uploads; the new JWT filter tests still need to pass in CI.
-4. Replace `ddl-auto: update` with controlled database migrations before production deployment.
-5. Use persistent image storage when hosting on an ephemeral filesystem.
-6. Store credentials and secrets in environment/secret-manager configuration only.
-
-## Development plan
-
-See [docs/ROADMAP.md](docs/ROADMAP.md) for the ordered completion plan. The priority order is: baseline builds and API checks, security fixes, tests, API Gateway, cart/order service, React frontend, deployment, and documentation/demo polish.
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the phased implementation checklist and remaining work. Local deployment instructions are in [DEPLOYMENT.md](DEPLOYMENT.md).
