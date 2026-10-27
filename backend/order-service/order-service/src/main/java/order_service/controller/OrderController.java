@@ -1,4 +1,5 @@
 package order_service.controller;
+import order_service.dto.AdminOrderResponse;
 import order_service.dto.OrderResponse;
 import order_service.dto.OrderStatusRequest;
 import order_service.security.OrderPrincipal;
@@ -19,6 +20,12 @@ public class OrderController {
     @PostMapping("/checkout") public ResponseEntity<OrderResponse> checkout(@AuthenticationPrincipal OrderPrincipal p){
         return ResponseEntity.status(HttpStatus.CREATED).body(service.checkout(p.userId()));
     }
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<AdminOrderResponse>> listAllForAdmin() {
+        return ResponseEntity.ok(service.getAllOrdersForAdmin());
+    }
+
     @GetMapping public ResponseEntity<List<OrderResponse>> list(@AuthenticationPrincipal OrderPrincipal p){
         return ResponseEntity.ok(service.getOrders(p.userId()));
     }
