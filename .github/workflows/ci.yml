@@ -90,3 +90,9 @@ jobs:
         run: |
           chmod +x mvnw
           ./mvnw --batch-mode test
+
+      - name: Build React Frontend
+        working-directory: frontend
+        run: |
+          npm install
+          npm run build

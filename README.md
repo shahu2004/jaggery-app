@@ -11,10 +11,11 @@ A Java 21 / Spring Boot backend for a jaggery marketplace. This repository is un
 | Product Service | 8082 | Product/category APIs, search, filters, pagination, sorting, soft delete and image uploads |
 | API Gateway | 8080 | Routes frontend API requests to backend services; handles development CORS |
 | Order Service | 8083 | Cart, checkout snapshots, customer order history and order-status workflow (initial MVP implementation) |
+| React Frontend | 5173 | Product catalog, auth screens, cart, test checkout, order history, seller studio and admin categories |
 
-Current code is in `backend/`. The API Gateway routing skeleton is now included on the completion branch. The Order Service MVP is now present on this branch; the React frontend and end-to-end UI are still planned work.
+Current code is in `backend/`. The API Gateway routing skeleton is now included on the completion branch. The Order Service MVP and React/Vite frontend are now present on this branch; end-to-end verification, production deployment and payment processing remain incomplete.
 
-## Tech stack
+## Frontend (React + Vite)\n\nSee [frontend/README.md](frontend/README.md). Configure `VITE_API_BASE_URL` to your gateway URL; local default is `http://localhost:8080`.\n\n## Tech stack
 
 - Java 21
 - Spring Boot and Spring Cloud Netflix Eureka

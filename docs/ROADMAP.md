@@ -16,8 +16,9 @@
 - Order Service initial implementation: cart, checkout snapshot, order history, cancellation and status workflow
 
 ### Not yet present in repository tree
-- React frontend
-- React frontend (not yet present)
+- Real payment provider integration
+- Production email notifications, inventory/stock tracking and audit trail
+- Frontend screens and API integration (initial implementation added on this branch; CI/build verification pending)
 - Root README with setup/security notes (added on this branch)
 - GitHub Actions workflow (added on this branch; latest run pending)
 - Meaningful automated tests beyond context-load tests
@@ -75,21 +76,21 @@
 
 **Exit criteria:** a customer can place a test order and later read their own order history.
 
-### Phase 5 — React frontend
-- [ ] Set up React with Vite and React Router.
-- [ ] Build product listing, details, search, filtering and pagination pages.
-- [ ] Build registration, login and authenticated session handling.
-- [ ] Build seller product management and image upload.
-- [ ] Build cart, checkout, order history and order status views.
-- [ ] Build admin category/management views as required.
+### Phase 5 — React frontend (initial implementation added on this branch; verification pending)
+- [x] Set up React with Vite.
+- [x] Build a product listing with search, filtering, and sorting (pagination UI is still pending).
+- [x] Build registration/login screens and bearer-token session handling.
+- [x] Build seller product CRUD and image upload screens (requires approved seller role).
+- [x] Build cart, simulated checkout, order history and cancellation views.
+- [x] Build administrator category creation view.
 - [ ] Keep permissions enforced server-side; protected/hide-only frontend routes are not security.
-- [ ] Handle loading, empty, success and error states consistently.
+- [x] Add loading, empty, success and error states.
 
 **Exit criteria:** users can complete the marketplace MVP end to end from the UI.
 
 ### Phase 6 — Quality, delivery and deployment
 - [ ] Add meaningful JUnit/Mockito unit tests and HTTP integration tests.
-- [ ] Add GitHub Actions to build and test all services, including the new Order Service, on pushes and pull requests.
+- [ ] Verify GitHub Actions builds/tests all services and the frontend on pushes and pull requests.
 - [ ] Add sample environment file with placeholders only; never commit real secrets.
 - [ ] Use database migrations and least-privilege DB users.
 - [ ] Use persistent or object storage for product images on cloud deployments.
