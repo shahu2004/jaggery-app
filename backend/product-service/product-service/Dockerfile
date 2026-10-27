@@ -11,5 +11,5 @@ WORKDIR /app
 RUN useradd --system --uid 10001 appuser && mkdir -p /app/uploads && chown -R appuser:appuser /app
 COPY --from=build /build/target/*.jar /app/app.jar
 USER appuser
-EXPOSE 8082
+EXPOSE 10000
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
