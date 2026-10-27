@@ -22,7 +22,7 @@ export async function api(path, { token, method = 'GET', body, headers = {} } = 
     const message = data?.message || data?.detail || data?.title || `Request failed (${response.status})`;
     throw new Error(message);
   }
-  return data;
+  return response.status === 204 ? { ok: true } : data;
 }
 
 export function imageUrl(path) {
