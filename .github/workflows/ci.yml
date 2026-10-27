@@ -112,3 +112,5 @@ jobs:
         run: |
           cp .env.example .env
           docker compose config --quiet
+      - name: Build all Docker images
+        run: docker compose build

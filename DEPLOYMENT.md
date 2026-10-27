@@ -7,7 +7,7 @@ This Compose configuration is for local development/demo, not a production deplo
 1. Install Docker Desktop and verify Docker Compose works.
 2. From the repository root, copy `.env.example` to `.env`.
 3. Set `MYSQL_ROOT_PASSWORD` and a private random `JWT_SECRET` of at least 32 bytes. All three JWT-aware services (Auth, Product, Order) must use the same secret.
-4. Start the stack:
+4. Validate the Compose file and build all service images (the same image build is checked in CI):
 
    ```bash
    docker compose config
