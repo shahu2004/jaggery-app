@@ -1,5 +1,6 @@
 package order_service.service;
 
+import order_service.dto.AdminOrderResponse;
 import order_service.dto.OrderResponse;
 import order_service.dto.ProductSnapshot;
 import order_service.entity.CartItem;
@@ -70,6 +71,24 @@ class OrderServiceTest {
                 ResponseStatusException.class, () -> service.getOrder(7L, 90L));
 
         assertEquals(HttpStatus.NOT_FOUND.value(), exception.getStatusCode().value());
+    }
+
+    @Test
+    void adminOrderListingIncludesCustomerIdAndOrderSummary() {
+        PurchaseOrder order = new PurchaseOrder();
+        order.setId(123L);
+        order.setUserId(7L);
+        order.setStatus(OrderStatus.PLACED);
+        order.setTotalAmount(new BigDecimal("125.00"));
+        when(orderRepository.findAll(any(org.springframework.data.domain.Sort.class)))
+                .thenReturn(List.of(order));
+
+        List<AdminOrderResponse> result = service.getAllOrdersForAdmin();
+
+        assertEquals(1, result.size());
+        assertEquals(123L, result.get(0).id());
+        assertEquals(7L, result.get(0).userId());
+        assertEquals(OrderStatus.PLACED, result.get(0).status());
     }
 
     @Test
