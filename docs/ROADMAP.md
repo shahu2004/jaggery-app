@@ -95,7 +95,7 @@
 - [x] Add sample environment file with placeholders only; never commit real secrets.
 - [ ] Use database migrations and least-privilege DB users.
 - [ ] Use persistent or object storage for product images on cloud deployments.
-- [ ] Deploy each service, gateway, database and frontend with private network/service settings where possible.
+- [ ] Deploy each service, gateway, database and frontend with private network/service settings where possible (see [cloud deployment checklist](RENDER_RAILWAY_DEPLOYMENT.md)).
 - [ ] Verify registration → login → browse → seller product CRUD → cart → test checkout → order history.
 - [ ] Document architecture, ports, configuration, API examples and screenshots in README.
 
