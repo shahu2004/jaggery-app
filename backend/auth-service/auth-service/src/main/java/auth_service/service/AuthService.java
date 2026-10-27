@@ -29,10 +29,9 @@ public class AuthService {
             throw new ApiException(HttpStatus.CONFLICT, "Email already registered");
         }
 
-        Role role = request.role() == null ? Role.CUSTOMER : request.role();
-        if (role == Role.ADMIN) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot register as ADMIN");
-        }
+        // Public registration must never grant privileged roles based on request data.
+        // Seller onboarding and administrator provisioning need a separate authorized workflow.
+        Role role = Role.CUSTOMER;
 
         User user = User.builder()
                 .name(request.name().trim())
