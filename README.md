@@ -99,9 +99,9 @@ Replace placeholders with local values. Do not paste secrets into source files. 
 
 This project is a work in progress and must not be treated as production-ready until these items are addressed:
 
-1. Product Service currently accepts `X-User-Id` and `X-User-Role` headers for write operations. Do not trust caller-supplied identity headers as authentication. Validate JWTs or establish a properly secured gateway-to-service trust boundary, and prevent direct untrusted access to the service.
-2. Review public registration so callers cannot elevate their privileges by choosing a role. Seller onboarding should follow an explicit, authorized policy.
-3. Add real unit and integration tests for authentication, authorization, product CRUD, filtering, pagination, categories and image uploads.
+1. The completion branch adds JWT validation at the Product Service boundary and derives product write identity from the verified principal. Run the build and security tests and review the gateway/direct-network design before exposing it publicly.
+2. Public registration now always assigns CUSTOMER. An authorized seller-onboarding and initial-admin provisioning workflow is still required.
+3. Add broader unit and integration tests for authentication, authorization, product CRUD, filtering, pagination, categories and image uploads; the new JWT filter tests still need to pass in CI.
 4. Replace `ddl-auto: update` with controlled database migrations before production deployment.
 5. Use persistent image storage when hosting on an ephemeral filesystem.
 6. Store credentials and secrets in environment/secret-manager configuration only.
