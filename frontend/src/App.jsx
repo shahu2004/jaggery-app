@@ -29,6 +29,7 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
   const [authMode, setAuthMode] = useState('login');
   const [authForm, setAuthForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [productForm, setProductForm] = useState(emptyProduct);
@@ -111,13 +112,17 @@ export default function App() {
     if ((page === 'admin' || page === 'seller') && token) {
       api('/api/categories', { token }).then(setCategories).catch(e => setError(e.message || 'Unable to load categories.'));
     }
-  }, [page, token]);
+    if (page === 'admin' && token && user?.role === 'ADMIN') {
+      api('/api/users', { token }).then(setAdminUsers).catch(e => setError(e.message || 'Unable to load user accounts.'));
+    }
+  }, [page, token, user?.role]);
 
   const cartTotal = useMemo(
     () => cart.reduce((sum, row) => sum + Number(row.product?.price || 0) * Number(row.quantity || 0), 0),
     [cart],
   );
   const myProducts = products.filter(p => Number(p.sellerId) === Number(user?.userId));
+  const pendingSellers = adminUsers.filter(account => account.role === 'CUSTOMER');
 
   const logout = () => {
     sessionStorage.removeItem('jaggery-token');
@@ -258,6 +263,17 @@ export default function App() {
   const cancelOrder = async (id) => {
     const result = await run(() => api(`/api/orders/${id}/cancel`, { token, method: 'POST' }), 'Order cancelled.');
     if (result) await loadOrders().catch(e => setError(e.message));
+  };
+
+  const approveSeller = async (id) => {
+    const result = await run(
+      () => api(`/api/users/${id}/approve-seller`, { token, method: 'POST' }),
+      'Seller access approved. The user must sign in again to receive the updated role.',
+    );
+    if (result) {
+      const refreshed = await api('/api/users', { token }).catch(() => adminUsers);
+      setAdminUsers(refreshed || []);
+    }
   };
 
   const createCategory = async (event) => {
@@ -415,6 +431,7 @@ export default function App() {
           <div className="admin-layout">
             <form className="form-panel" onSubmit={createCategory}><h3>Create category</h3><label>Category name<input required maxLength="100" value={categoryName} onChange={e => setCategoryName(e.target.value)}/></label><button className="button button-primary" disabled={busy}>Create category</button></form>
             <div className="category-panel"><h3>Current categories</h3>{categories.length ? categories.map(c => <div className="category-row" key={c.id}><span>{c.name}</span><small>#{c.id}</small></div>) : <p className="muted">No categories yet.</p>}</div>
+            <div className="category-panel seller-approval-panel"><h3>Seller approvals</h3><p className="hint">Review customer accounts before granting seller access.</p>{pendingSellers.length ? pendingSellers.map(account => <div className="category-row approval-row" key={account.id}><span><strong>{account.name}</strong><small>{account.email}</small></span><button type="button" className="button button-secondary compact" disabled={busy} onClick={() => approveSeller(account.id)}>Approve seller</button></div>) : <p className="muted">No customer accounts awaiting seller approval.</p>}</div>
           </div>
         </section>}
 

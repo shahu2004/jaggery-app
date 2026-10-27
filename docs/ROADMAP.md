@@ -18,9 +18,9 @@
 ### Not yet present in repository tree
 - Real payment provider integration
 - Production email notifications, inventory/stock tracking and audit trail
-- Frontend screens and API integration (initial implementation added on this branch; CI/build verification pending)
+ - React/Vite frontend screens and initial API integration (added on this branch; build verification pending)
 - Root README with setup/security notes (added on this branch)
-- Local Docker Compose deployment files (added on this branch; testing pending)
+- Local Docker Compose files and container definitions (added on this branch; testing pending)
 - GitHub Actions workflow (added on this branch; latest run pending)
 - Meaningful automated tests beyond context-load tests
 

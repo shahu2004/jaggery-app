@@ -7,3 +7,5 @@
 @media(max-width:400px){.product-grid,.seller-products .product-grid{grid-template-columns:1fr}.product-image{height:180px}.main-nav .nav-link{font-size:11px;padding:8px 10px}.account-area .user-chip{display:none}.form-row{grid-template-columns:1fr}.hero h1{font-size:2.7rem}}
 
 .pagination{display:flex;align-items:center;justify-content:center;gap:18px;margin:25px 0 10px;color:var(--muted);font-size:12px}
+
+.approval-row>span{display:flex;flex-direction:column;gap:4px}.approval-row strong{font-size:12px;color:#34452b}.approval-row small{font-size:10px;color:var(--muted)}.seller-approval-panel{grid-column:1/-1}

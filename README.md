@@ -51,6 +51,8 @@ For write APIs, inspect the source and the security notes below before exposing 
 
 ## Local prerequisites
 
+For an all-in-one local development stack, see [DEPLOYMENT.md](DEPLOYMENT.md) and `docker-compose.yml`. Copy `.env.example` to `.env`, set local secrets, then run `docker compose up --build`. This Compose stack is for local development, not production.
+
 For an all-in-one local development stack, see [DEPLOYMENT.md](DEPLOYMENT.md) and `docker-compose.yml`. Copy `.env.example` to `.env`, set local secrets, then run `docker compose up --build`. The Compose stack is not a production security configuration.
 
 - JDK 21
