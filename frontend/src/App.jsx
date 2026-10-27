@@ -17,6 +17,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [type, setType] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState('id');
@@ -60,6 +61,7 @@ export default function App() {
       const params = new URLSearchParams({ page: String(catalogPage), size: '12', sortBy, direction });
       if (search.trim()) params.set('search', search.trim());
       if (type) params.set('type', type);
+      if (categoryId) params.set('categoryId', categoryId);
       if (minPrice !== '') params.set('minPrice', minPrice);
       if (maxPrice !== '') params.set('maxPrice', maxPrice);
       const data = await api(`/api/products?${params.toString()}`);
@@ -74,7 +76,13 @@ export default function App() {
     }
   };
 
-  useEffect(() => { loadProducts(); }, [search, type, minPrice, maxPrice, sortBy, direction, catalogPage]);
+  useEffect(() => { loadProducts(); }, [search, type, categoryId, minPrice, maxPrice, sortBy, direction, catalogPage]);
+
+  useEffect(() => {
+    api('/api/categories')
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
 
   useEffect(() => {
     if (page !== 'cart' || !token) return;
@@ -355,6 +363,7 @@ export default function App() {
             <div className="filters">
               <label className="search-field"><span>⌕</span><input value={search} onChange={e => { setSearch(e.target.value); setCatalogPage(0); }} placeholder="Search products..." aria-label="Search products"/></label>
               <select value={type} onChange={e => { setType(e.target.value); setCatalogPage(0); }} aria-label="Filter product type"><option value="">All types</option>{TYPES.map(t => <option key={t}>{t}</option>)}</select>
+              <select value={categoryId} onChange={e => { setCategoryId(e.target.value); setCatalogPage(0); }} aria-label="Filter by category"><option value="">All categories</option>{categories.map(category => <option value={category.id} key={category.id}>{category.name}</option>)}</select>
               <input className="price-filter" type="number" min="0" value={minPrice} onChange={e => { setMinPrice(e.target.value); setCatalogPage(0); }} placeholder="Min ₹" aria-label="Minimum price"/>
               <input className="price-filter" type="number" min="0" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setCatalogPage(0); }} placeholder="Max ₹" aria-label="Maximum price"/>
               <select value={sortBy} onChange={e => { setSortBy(e.target.value); setCatalogPage(0); }} aria-label="Sort products"><option value="id">Latest</option><option value="name">Name</option><option value="price">Price</option><option value="createdAt">Date added</option></select>
@@ -362,7 +371,7 @@ export default function App() {
             </div>
             {productsLoading ? <div className="empty-state">Loading fresh products…</div>
               : products.length ? <div className="product-grid">{products.map(p => <ProductCard key={p.id} product={p}/>)}</div>
-              : <div className="empty-state"><span>🌾</span><h3>No products found</h3><p>Try a different search or filter.</p><button className="button button-secondary" onClick={() => { setSearch(''); setType(''); setMinPrice(''); setMaxPrice(''); setCatalogPage(0); }}>Clear filters</button></div>}
+              : <div className="empty-state"><span>🌾</span><h3>No products found</h3><p>Try a different search or filter.</p><button className="button button-secondary" onClick={() => { setSearch(''); setType(''); setCategoryId(''); setMinPrice(''); setMaxPrice(''); setCatalogPage(0); }}>Clear filters</button></div>}
             {!productsLoading && catalogPages > 1 && <div className="pagination"><button className="button button-secondary compact" disabled={catalogPage <= 0} onClick={() => setCatalogPage(p => Math.max(0, p - 1))}>Previous</button><span>Page {catalogPage + 1} of {catalogPages}</span><button className="button button-secondary compact" disabled={catalogPage + 1 >= catalogPages} onClick={() => setCatalogPage(p => Math.min(catalogPages - 1, p + 1))}>Next</button></div>}
           </section>
         </>}
