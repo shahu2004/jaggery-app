@@ -70,7 +70,8 @@
 - [x] Implement order history, customer cancellation before confirmation, and controlled status transitions.
 - [ ] Prevent negative stock/overselling if inventory is added.
 - [ ] Start with test/simulated payment state before integrating a real payment provider.
-- [ ] Add tests for empty cart, invalid quantity, repeated requests, service failures and cross-user access. Current context-load test is not sufficient.
+- [x] Add unit tests for checkout totals/server-sourced prices, empty carts, order ownership, invalid status transitions, cart quantity increments and limits.
+- [ ] Add HTTP integration tests, repeated-checkout/idempotency protection and explicit upstream failure tests. Current context-load test is not sufficient.
 
 **Exit criteria:** a customer can place a test order and later read their own order history.
 
