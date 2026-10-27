@@ -12,11 +12,11 @@
 - Application configuration supports environment variables for database, JWT and Eureka settings.
 
 ### Not yet present in repository tree
-- Public API Gateway
+- API Gateway skeleton on port 8080 with Eureka routes and development CORS (added on this branch)
 - React frontend
 - Cart and order service
-- Root README (being added in this workstream)
-- GitHub Actions workflow
+- Root README with setup/security notes (added on this branch)
+- GitHub Actions workflow (added on this branch; latest run pending)
 - Meaningful automated tests beyond context-load tests
 
 ## Delivery sequence
