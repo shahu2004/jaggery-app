@@ -7,8 +7,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 @RestController
@@ -28,8 +28,9 @@ public class OrderController {
     @PostMapping("/{id}/cancel") public ResponseEntity<OrderResponse> cancel(@AuthenticationPrincipal OrderPrincipal p,@PathVariable Long id){
         return ResponseEntity.ok(service.cancelOrder(p.userId(),id));
     }
-    @PatchMapping("/{id}/status") public ResponseEntity<OrderResponse> status(@AuthenticationPrincipal OrderPrincipal p,@PathVariable Long id,@Valid @RequestBody OrderStatusRequest request){
-        if(!"ADMIN".equals(p.role())) throw new AccessDeniedException("Only admins can change order status");
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderResponse> status(@AuthenticationPrincipal OrderPrincipal p,@PathVariable Long id,@Valid @RequestBody OrderStatusRequest request){
         return ResponseEntity.ok(service.updateStatus(id,request.status()));
     }
 }
