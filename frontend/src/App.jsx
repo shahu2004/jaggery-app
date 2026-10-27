@@ -23,6 +23,7 @@ export default function App() {
   const [sortBy, setSortBy] = useState('id');
   const [direction, setDirection] = useState('desc');
   const [products, setProducts] = useState([]);
+  const [sellerProducts, setSellerProducts] = useState([]);
   const [catalogPage, setCatalogPage] = useState(0);
   const [catalogPages, setCatalogPages] = useState(0);
   const [catalogTotal, setCatalogTotal] = useState(0);
@@ -53,6 +54,11 @@ export default function App() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const loadSellerProducts = async () => {
+    const data = await api('/api/products/mine?page=0&size=50', { token });
+    setSellerProducts(data?.content || []);
   };
 
   const loadProducts = async () => {
@@ -110,9 +116,7 @@ export default function App() {
 
   useEffect(() => {
     if (page === 'seller' && token && user) {
-      api('/api/products?page=0&size=50&sortBy=id&direction=desc')
-        .then(result => setProducts(result?.content || []))
-        .catch(e => setError(e.message || 'Unable to load seller products.'));
+      loadSellerProducts().catch(e => setError(e.message || 'Unable to load seller products.'));
     }
   }, [page, token, user?.userId]);
 
@@ -129,7 +133,7 @@ export default function App() {
     () => cart.reduce((sum, row) => sum + Number(row.product?.price || 0) * Number(row.quantity || 0), 0),
     [cart],
   );
-  const myProducts = products.filter(p => Number(p.sellerId) === Number(user?.userId));
+  const myProducts = sellerProducts.filter(p => Number(p.sellerId) === Number(user?.userId));
   const pendingSellers = adminUsers.filter(account => account.role === 'CUSTOMER');
 
   const logout = () => {
@@ -207,6 +211,7 @@ export default function App() {
     setEditingId(null);
     setImageFile(null);
     await loadProducts();
+    await loadSellerProducts().catch(e => setError(e.message || 'Product saved, but seller listing did not refresh.'));
     setNotice(editingId ? 'Product updated.' : 'Product saved.');
   };
 
@@ -230,6 +235,7 @@ export default function App() {
     const result = await run(() => api(`/api/products/${product.id}`, { token, method: 'DELETE' }), 'Product marked inactive.');
     if (result) {
       await loadProducts();
+      await loadSellerProducts().catch(e => setError(e.message || 'Product deleted, but seller listing did not refresh.'));
     }
   };
 
