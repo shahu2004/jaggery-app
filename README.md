@@ -9,8 +9,9 @@ A Java 21 / Spring Boot backend for a jaggery marketplace. This repository is un
 | Discovery Server (Eureka) | 8761 | Registers and discovers backend services |
 | Auth Service | 8081 | Registration, login, BCrypt password hashing, JWT issuance, user profile APIs and role checks |
 | Product Service | 8082 | Product/category APIs, search, filters, pagination, sorting, soft delete and image uploads |
+| API Gateway | 8080 | Routes frontend API requests to backend services; handles development CORS |
 
-Current code is in `backend/`. A public API Gateway, React frontend and cart/order service are planned work, not yet included in this repository tree.
+Current code is in `backend/`. The API Gateway routing skeleton is now included on the completion branch. The React frontend and cart/order service are still planned work.
 
 ## Tech stack
 
@@ -91,6 +92,15 @@ $env:DB_USERNAME = "root"
 $env:DB_PASSWORD = "<your-local-mysql-password>"
 $env:JWT_SECRET = "<the-same-random-secret-used-by-auth-service>"
 $env:EUREKA_URL = "http://localhost:8761/eureka"
+.\mvnw.cmd spring-boot:run
+```
+
+**4. API Gateway**
+Start this service after Eureka. It listens on port 8080 and routes auth/user requests to Auth Service and product/category requests to Product Service.
+```powershell
+cd backend\api-gateway\api-gateway
+$env:EUREKA_URL = "http://localhost:8761/eureka"
+$env:FRONTEND_ORIGIN = "http://localhost:5173"
 .\mvnw.cmd spring-boot:run
 ```
 
