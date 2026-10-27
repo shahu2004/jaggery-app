@@ -37,7 +37,7 @@ jobs:
 
       - name: Create application databases
         run: |
-          mysql -h 127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS jaggery_auth; CREATE DATABASE IF NOT EXISTS jaggery_product;"
+          mysql -h 127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS jaggery_auth; CREATE DATABASE IF NOT EXISTS jaggery_product; CREATE DATABASE IF NOT EXISTS jaggery_order;"
 
       - name: Test Auth Service
         working-directory: backend/auth-service/auth-service
@@ -74,6 +74,19 @@ jobs:
         working-directory: backend/api-gateway/api-gateway
         env:
           EUREKA_URL: http://127.0.0.1:8761/eureka
+        run: |
+          chmod +x mvnw
+          ./mvnw --batch-mode test
+
+      - name: Test Order Service
+        working-directory: backend/order-service/order-service
+        env:
+          DB_URL: jdbc:mysql://127.0.0.1:3306/jaggery_order?useSSL=false&serverTimezone=UTC
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          JWT_SECRET: jaggery-local-ci-secret-change-me-2026-987654321
+          EUREKA_URL: http://127.0.0.1:8761/eureka
+          PRODUCT_SERVICE_URL: http://127.0.0.1:8082
         run: |
           chmod +x mvnw
           ./mvnw --batch-mode test

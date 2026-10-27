@@ -10,8 +10,9 @@ A Java 21 / Spring Boot backend for a jaggery marketplace. This repository is un
 | Auth Service | 8081 | Registration, login, BCrypt password hashing, JWT issuance, user profile APIs and role checks |
 | Product Service | 8082 | Product/category APIs, search, filters, pagination, sorting, soft delete and image uploads |
 | API Gateway | 8080 | Routes frontend API requests to backend services; handles development CORS |
+| Order Service | 8083 | Cart, checkout snapshots, customer order history and order-status workflow (initial MVP implementation) |
 
-Current code is in `backend/`. The API Gateway routing skeleton is now included on the completion branch. The React frontend and cart/order service are still planned work.
+Current code is in `backend/`. The API Gateway routing skeleton is now included on the completion branch. The Order Service MVP is now present on this branch; the React frontend and end-to-end UI are still planned work.
 
 ## Tech stack
 
@@ -104,7 +105,22 @@ $env:FRONTEND_ORIGIN = "http://localhost:5173"
 .\mvnw.cmd spring-boot:run
 ```
 
-The Auth Service and Product Service must use the exact same JWT_SECRET value. Replace placeholders with local values. Do not paste secrets into source files. If the Maven Wrapper fails, check that JDK 21 is selected and that Maven Wrapper files are present.
+**5. Order Service**
+Set `DB_URL` to the `jaggery_order` database and use the exact same JWT secret as Auth Service and Product Service. Configure `PRODUCT_SERVICE_URL` for the address Order Service can use to reach Product Service.
+```powershell
+cd backend\\order-service\\order-service
+$env:DB_URL = "jdbc:mysql://localhost:3306/jaggery_order?useSSL=false&serverTimezone=Asia/Kolkata"
+$env:DB_USERNAME = "root"
+$env:DB_PASSWORD = "<your-local-mysql-password>"
+$env:JWT_SECRET = "<the-same-random-secret-used-by-auth-service>"
+$env:PRODUCT_SERVICE_URL = "http://localhost:8082"
+$env:EUREKA_URL = "http://localhost:8761/eureka"
+.\\mvnw.cmd spring-boot:run
+```
+
+**Order APIs** (all require a valid bearer token): `GET /api/cart`, `POST /api/cart/items`, `PUT /api/cart/items/{productId}`, `DELETE /api/cart/items/{productId}`, `POST /api/orders/checkout`, `GET /api/orders`, `GET /api/orders/{id}`, `POST /api/orders/{id}/cancel`. Admins can update valid status transitions with `PATCH /api/orders/{id}/status`.
+
+The Auth Service, Product Service and Order Service must use the exact same JWT_SECRET value. Replace placeholders with local values. Do not paste secrets into source files. If the Maven Wrapper fails, check that JDK 21 is selected and that Maven Wrapper files are present.
 
 ## Security and readiness notes
 

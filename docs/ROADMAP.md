@@ -11,10 +11,13 @@
 - Maven Wrapper included in each service.
 - Application configuration supports environment variables for database, JWT and Eureka settings.
 
+### Added on this branch (verification pending)
+- API Gateway skeleton on port 8080 with Eureka routes and development CORS
+- Order Service initial implementation: cart, checkout snapshot, order history, cancellation and status workflow
+
 ### Not yet present in repository tree
-- API Gateway skeleton on port 8080 with Eureka routes and development CORS (added on this branch)
 - React frontend
-- Cart and order service
+- React frontend (not yet present)
 - Root README with setup/security notes (added on this branch)
 - GitHub Actions workflow (added on this branch; latest run pending)
 - Meaningful automated tests beyond context-load tests
@@ -59,15 +62,15 @@
 
 **Exit criteria:** frontend APIs work through the gateway and security is unchanged by routing.
 
-### Phase 4 — Cart and Order Service
-- [ ] Create a separate Spring Boot service and MySQL database for cart/order data.
-- [ ] Add cart and cart-item models, repository, service and APIs.
+### Phase 4 — Cart and Order Service (initial implementation added on this branch; verification pending)
+- [x] Create a separate Spring Boot service and MySQL database for cart/order data.
+- [x] Add cart and cart-item models, repository, service and APIs.
 - [ ] Validate product existence and price from trusted server-side product data.
-- [ ] Create order and order-item snapshots with immutable checkout prices.
-- [ ] Implement order history and controlled status transitions.
+- [x] Create order and order-item snapshots using server-read product prices at checkout.
+- [x] Implement order history, customer cancellation before confirmation, and controlled status transitions.
 - [ ] Prevent negative stock/overselling if inventory is added.
 - [ ] Start with test/simulated payment state before integrating a real payment provider.
-- [ ] Add tests for empty cart, invalid quantity, repeated requests, service failures and cross-user access.
+- [ ] Add tests for empty cart, invalid quantity, repeated requests, service failures and cross-user access. Current context-load test is not sufficient.
 
 **Exit criteria:** a customer can place a test order and later read their own order history.
 
@@ -85,7 +88,7 @@
 
 ### Phase 6 — Quality, delivery and deployment
 - [ ] Add meaningful JUnit/Mockito unit tests and HTTP integration tests.
-- [ ] Add GitHub Actions to build and test the services on pushes and pull requests.
+- [ ] Add GitHub Actions to build and test all services, including the new Order Service, on pushes and pull requests.
 - [ ] Add sample environment file with placeholders only; never commit real secrets.
 - [ ] Use database migrations and least-privilege DB users.
 - [ ] Use persistent or object storage for product images on cloud deployments.
