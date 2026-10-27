@@ -13,7 +13,7 @@ A Java 21 / Spring Boot backend for a jaggery marketplace. This repository is un
 | Order Service | 8083 | Cart, checkout snapshots, customer order history and order-status workflow (initial MVP implementation) |
 | React Frontend | 5173 | Product catalog, auth screens, cart, test checkout, order history, seller studio and admin categories |
 
-Current code is in `backend/`. The API Gateway routing skeleton is now included on the completion branch. The Order Service MVP and React/Vite frontend are now present on this branch; end-to-end verification, production deployment and payment processing remain incomplete.
+Backend services are in `backend/`; the React/Vite UI is in `frontend/`. The API Gateway, initial Order Service and frontend are present on this branch. End-to-end verification, production deployment and payment processing remain incomplete.
 
 ## Frontend (React + Vite)\n\nSee [frontend/README.md](frontend/README.md). Configure `VITE_API_BASE_URL` to your gateway URL; local default is `http://localhost:8080`.\n\n## Tech stack
 
@@ -50,6 +50,8 @@ Current code is in `backend/`. The API Gateway routing skeleton is now included 
 For write APIs, inspect the source and the security notes below before exposing them outside localhost.
 
 ## Local prerequisites
+
+For an all-in-one local development stack, see [DEPLOYMENT.md](DEPLOYMENT.md) and `docker-compose.yml`. Copy `.env.example` to `.env`, set local secrets, then run `docker compose up --build`. The Compose stack is not a production security configuration.
 
 - JDK 21
 - MySQL running locally

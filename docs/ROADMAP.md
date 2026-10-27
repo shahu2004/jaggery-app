@@ -20,6 +20,7 @@
 - Production email notifications, inventory/stock tracking and audit trail
 - Frontend screens and API integration (initial implementation added on this branch; CI/build verification pending)
 - Root README with setup/security notes (added on this branch)
+- Local Docker Compose deployment files (added on this branch; testing pending)
 - GitHub Actions workflow (added on this branch; latest run pending)
 - Meaningful automated tests beyond context-load tests
 
