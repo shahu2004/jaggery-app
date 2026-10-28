@@ -104,16 +104,25 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (page !== 'cart' || !token) return;
+    if (!token) {
+      setCart([]);
+      return;
+    }
     (async () => {
       try {
         const rows = await api('/api/cart', { token });
-        const hydrated = await Promise.all((rows || []).map(async (row) => {
-          try { return { ...row, product: await api(`/api/products/${row.productId}`) }; }
-          catch { return { ...row, product: null }; }
-        }));
-        setCart(hydrated);
-      } catch (e) { setError(e.message || 'Unable to load cart.'); }
+        if (page === 'cart') {
+          const hydrated = await Promise.all((rows || []).map(async (row) => {
+            try { return { ...row, product: await api(`/api/products/${row.productId}`) }; }
+            catch { return { ...row, product: null }; }
+          }));
+          setCart(hydrated);
+        } else {
+          setCart(rows || []);
+        }
+      } catch (e) {
+        if (page === 'cart') setError(e.message || 'Unable to load cart.');
+      }
     })();
   }, [page, token]);
 
@@ -186,9 +195,17 @@ export default function App() {
     const result = await run(() => api('/api/cart/items', {
       token, method: 'POST', body: { productId: product.id, quantity: 1 },
     }), `${product.name} added to your cart.`);
-    if (result && page === 'cart') {
+    if (result) {
       const rows = await api('/api/cart', { token });
-      setCart(rows || []);
+      if (page === 'cart') {
+        const hydrated = await Promise.all((rows || []).map(async row => {
+          try { return { ...row, product: await api(`/api/products/${row.productId}`) }; }
+          catch { return { ...row, product: null }; }
+        }));
+        setCart(hydrated);
+      } else {
+        setCart(rows || []);
+      }
     }
   };
 
