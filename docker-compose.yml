@@ -1,0 +1,110 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Copy .env.example to .env and set MYSQL_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  discovery-server:
+    build: ./backend/discovery-server/discovery-server
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8761:8761"
+
+  auth-service:
+    build: ./backend/auth-service/auth-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/jaggery_auth?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      EUREKA_URL: http://discovery-server:8761/eureka
+      DDL_AUTO: update
+
+  product-service:
+    build: ./backend/product-service/product-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/jaggery_product?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      EUREKA_URL: http://discovery-server:8761/eureka
+      DDL_AUTO: update
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - jaggery_uploads:/app/uploads
+
+  order-service:
+    build: ./backend/order-service/order-service
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+      product-service:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/jaggery_order?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      EUREKA_URL: http://discovery-server:8761/eureka
+      PRODUCT_SERVICE_URL: http://product-service:8082
+      DDL_AUTO: update
+
+  api-gateway:
+    build: ./backend/api-gateway/api-gateway
+    restart: unless-stopped
+    depends_on:
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080}
+    restart: unless-stopped
+    depends_on:
+      api-gateway:
+        condition: service_started
+    ports:
+      - "5173:80"
+
+volumes:
+  mysql_data:
+  jaggery_uploads:
