@@ -147,6 +147,18 @@ export default function App() {
     () => cart.reduce((sum, row) => sum + Number(row.product?.price || 0) * Number(row.quantity || 0), 0),
     [cart],
   );
+  const cartItemCount = cart.reduce((sum, row) => sum + Number(row.quantity || 0), 0);
+  const hasActiveFilters = Boolean(search.trim() || type || categoryId || minPrice !== '' || maxPrice !== '');
+  const clearCatalogFilters = () => {
+    setSearch('');
+    setType('');
+    setCategoryId('');
+    setMinPrice('');
+    setMaxPrice('');
+    setSortBy('id');
+    setDirection('desc');
+    setCatalogPage(0);
+  };
   const myProducts = sellerProducts.filter(p => Number(p.sellerId) === Number(user?.userId));
   const pendingSellers = adminUsers.filter(account => account.role === 'CUSTOMER');
 
@@ -341,41 +353,54 @@ export default function App() {
       <div className="product-image">
         {product.imageUrl
           ? <img src={imageUrl(product.imageUrl)} alt={product.name} loading="lazy" />
-          : <div className="image-placeholder"><span>🌾</span><small>Pure jaggery</small></div>}
-        <span className="type-badge">{product.type}</span>
+          : <div className="image-placeholder" aria-label="Jaggery product image placeholder"><span aria-hidden="true">🌾</span><small>Jaggery pantry</small></div>}
+        <span className="type-badge">{String(product.type || 'JAGGERY').replaceAll('_', ' ')}</span>
+        {product.weightGrams && <span className="weight-badge">{product.weightGrams} g</span>}
       </div>
       <div className="product-card-body">
-        <div className="product-heading"><h3>{product.name}</h3><strong>{money(product.price)}</strong></div>
-        <p className="muted">{product.description || 'A traditional jaggery product.'}</p>
-        <div className="product-meta"><span>{product.weightGrams} g</span><span>{product.categoryName || 'Traditional'}</span></div>
+        <span className="product-kicker">{product.categoryName || 'Traditional pantry'}</span>
+        <div className="product-heading">
+          <h3>{product.name}</h3>
+          <strong>{money(product.price)}</strong>
+        </div>
+        <p className="muted product-description">{product.description || 'A versatile jaggery staple for your kitchen.'}</p>
+        <div className="product-meta"><span>Net weight</span><strong>{product.weightGrams ? String(product.weightGrams) + ' g' : 'See details'}</strong></div>
         {seller
           ? <div className="card-actions">
               <button className="button button-secondary" onClick={() => beginEdit(product)}>Edit</button>
-              <button className="button button-danger" onClick={() => deleteProduct(product)}>Soft delete</button>
+              <button className="button button-danger" onClick={() => deleteProduct(product)}>Delete listing</button>
             </div>
-          : <button className="button button-primary full" onClick={() => addToCart(product)}>Add to cart</button>}
+          : <button className="button button-primary full add-cart-button" onClick={() => addToCart(product)} disabled={busy}>
+              <span>Add to cart</span><span aria-hidden="true">＋</span>
+            </button>}
       </div>
     </article>
   );
 
   return (
     <div className="app-shell">
+      <div className="announcement-bar">
+        <span><span aria-hidden="true">✦</span> A little sweetness, rooted in tradition</span>
+        <span className="announcement-note">Marketplace demo · Test checkout only</span>
+      </div>
       <header className="topbar">
-        <button className="brand" onClick={() => setPage('shop')} aria-label="Go to shop">
+        <button className="brand" onClick={() => setPage('shop')} aria-label="Go to Jaggery home">
           <span className="brand-mark">J</span>
-          <span><strong>Jaggery</strong><small>From farm to family</small></span>
+          <span className="brand-copy"><strong>Jaggery</strong><small>From farm to family</small></span>
         </button>
-        <nav className="main-nav">
+        <nav className="main-nav" aria-label="Primary navigation">
           {navButton('shop', 'Shop')}
-          {token && navButton('cart', 'Cart')}
           {token && navButton('orders', 'My orders')}
           {token && ['SELLER', 'ADMIN'].includes(user?.role) && navButton('seller', 'Seller studio')}
           {token && user?.role === 'ADMIN' && navButton('admin', 'Admin')}
         </nav>
         <div className="account-area">
+          {token && <button className={'cart-link ' + (page === 'cart' ? 'active' : '')} onClick={() => setPage('cart')} aria-label={'Open cart, ' + cartItemCount + ' items'}>
+            <span aria-hidden="true">♧</span><span>Cart</span><span className="cart-count">{cartItemCount}</span>
+          </button>}
           {token
-            ? <><span className="user-chip">{user?.name || 'Signed in'} <small>{user?.role}</small></span><button className="button button-secondary compact" onClick={logout}>Sign out</button></>
-            : <button className="button button-primary compact" onClick={() => { setPage('auth'); setAuthMode('login'); }}>Sign in</button>}
+            ? <><span className="user-chip"><span className="user-avatar" aria-hidden="true">{(user?.name || 'U').trim().charAt(0).toUpperCase()}</span><span className="user-copy">{user?.name || 'Signed in'}<small>{user?.role}</small></span></span><button className="button button-secondary compact" onClick={logout}>Sign out</button></>
+            : <><button className="header-signin" onClick={() => { setPage('auth'); setAuthMode('login'); }}>Sign in</button><button className="button button-primary compact header-account-cta" onClick={() => { setPage('auth'); setAuthMode('register'); }}>Create account</button></>}
         </div>
       </header>
 
@@ -386,28 +411,66 @@ export default function App() {
         {page === 'shop' && <>
           <section className="hero">
             <div className="hero-copy">
-              <span className="eyebrow">THE SWEETNESS OF TRADITION</span>
-              <h1>Good food starts<br/><em>with good roots.</em></h1>
-              <p>Discover traditional jaggery products for everyday cooking, chai and family recipes.</p>
-              <button className="button button-light" onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}>Explore products <span>↓</span></button>
+              <span className="eyebrow">ROOTED IN INDIAN TRADITION</span>
+              <h1>Sweetness that<br/><em>brings us home.</em></h1>
+              <p>Explore jaggery for everyday chai, family recipes and the little rituals that make a kitchen feel like home.</p>
+              <button className="button button-light hero-cta" onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}>
+                Shop the collection <span aria-hidden="true">↗</span>
+              </button>
+              <div className="hero-proof"><span><strong>01</strong> Browse by format</span><span><strong>02</strong> Compare your options</span></div>
             </div>
-            <div className="hero-visual"><div className="sun-disc"></div><div className="jaggery-block block-one"></div><div className="jaggery-block block-two"></div><div className="leaf leaf-one"></div><div className="leaf leaf-two"></div><span className="hero-seal">SIMPLE<br/>NATURAL<br/>TRADITIONAL</span></div>
-            <div className="hero-bottom"><span>Small-batch feel</span><span>Everyday essentials</span><span>Made for real kitchens</span></div>
+            <div className="hero-visual" aria-label="Decorative illustration of jaggery blocks">
+              <div className="sun-disc"></div><div className="jaggery-block block-one"></div><div className="jaggery-block block-two"></div><div className="leaf leaf-one"></div><div className="leaf leaf-two"></div>
+              <span className="hero-seal">A TASTE<br/>OF HOME</span>
+              <span className="hero-visual-caption">THE EVERYDAY PANTRY</span>
+            </div>
+            <div className="hero-bottom"><span>Traditional formats</span><span>Made for everyday kitchens</span><span>Test checkout · No payment collected</span></div>
           </section>
+
+          <section className="value-strip" aria-label="Marketplace highlights">
+            <div className="value-item"><span className="value-icon" aria-hidden="true">01</span><div><strong>Find your format</strong><small>Blocks, cubes, powder and more</small></div></div>
+            <div className="value-item"><span className="value-icon" aria-hidden="true">02</span><div><strong>Compare with ease</strong><small>Explore price, type and weight</small></div></div>
+            <div className="value-item"><span className="value-icon" aria-hidden="true">03</span><div><strong>Simple demo checkout</strong><small>Try the order flow without payment</small></div></div>
+          </section>
+
+          <section className="shop-by-type" aria-labelledby="shop-by-type-title">
+            <div className="shop-by-type-heading"><span className="eyebrow">FIND YOUR FAVOURITE</span><h2 id="shop-by-type-title">Shop by <em>format.</em></h2></div>
+            <div className="type-chip-list">
+              <button className={!type ? 'type-chip active' : 'type-chip'} onClick={() => { setType(''); setCatalogPage(0); document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' }); }}>All products <span>↗</span></button>
+              {TYPES.map((item, index) => <button key={item} className={type === item ? 'type-chip active' : 'type-chip'} onClick={() => { setType(type === item ? '' : item); setCatalogPage(0); document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' }); }}><span className="type-chip-number">0{index + 1}</span>{item.toLowerCase().replace(/\b\w/g, char => char.toUpperCase())}<span aria-hidden="true">↗</span></button>)}
+            </div>
+          </section>
+
           <section id="catalog" className="catalog-section">
-            <div className="section-heading"><div><span className="eyebrow">THE MARKETPLACE</span><h2>Find your favourite <em>jaggery.</em></h2></div><span className="count-label">{catalogTotal} products found</span></div>
+            <div className="section-heading catalog-title-row">
+              <div><span className="eyebrow">THE JAGGERY MARKETPLACE</span><h2>Find something <em>good.</em></h2><p className="catalog-subtitle">Search the collection, refine by type or category, and find the right fit for your kitchen.</p></div>
+              <span className="count-label"><strong>{catalogTotal}</strong> {catalogTotal === 1 ? 'product' : 'products'} found</span>
+            </div>
             <div className="filters">
-              <label className="search-field"><span>⌕</span><input value={search} onChange={e => { setSearch(e.target.value); setCatalogPage(0); }} placeholder="Search products..." aria-label="Search products"/></label>
-              <select value={type} onChange={e => { setType(e.target.value); setCatalogPage(0); }} aria-label="Filter product type"><option value="">All types</option>{TYPES.map(t => <option key={t}>{t}</option>)}</select>
+              <label className="search-field"><span aria-hidden="true">⌕</span><input value={search} onChange={e => { setSearch(e.target.value); setCatalogPage(0); }} placeholder="Search jaggery products..." aria-label="Search products"/></label>
+              <select value={type} onChange={e => { setType(e.target.value); setCatalogPage(0); }} aria-label="Filter product type"><option value="">All formats</option>{TYPES.map(t => <option key={t}>{t}</option>)}</select>
               <select value={categoryId} onChange={e => { setCategoryId(e.target.value); setCatalogPage(0); }} aria-label="Filter by category"><option value="">All categories</option>{categories.map(category => <option value={category.id} key={category.id}>{category.name}</option>)}</select>
               <input className="price-filter" type="number" min="0" value={minPrice} onChange={e => { setMinPrice(e.target.value); setCatalogPage(0); }} placeholder="Min ₹" aria-label="Minimum price"/>
               <input className="price-filter" type="number" min="0" value={maxPrice} onChange={e => { setMaxPrice(e.target.value); setCatalogPage(0); }} placeholder="Max ₹" aria-label="Maximum price"/>
-              <select value={sortBy} onChange={e => { setSortBy(e.target.value); setCatalogPage(0); }} aria-label="Sort products"><option value="id">Latest</option><option value="name">Name</option><option value="price">Price</option><option value="createdAt">Date added</option></select>
-              <button className="button button-secondary compact" onClick={() => { setDirection(direction === 'asc' ? 'desc' : 'asc'); setCatalogPage(0); }}>{direction === 'asc' ? '↑ Asc' : '↓ Desc'}</button>
+              <select value={sortBy} onChange={e => { setSortBy(e.target.value); setCatalogPage(0); }} aria-label="Sort products"><option value="id">Sort: latest</option><option value="name">Sort: name</option><option value="price">Sort: price</option><option value="createdAt">Sort: date added</option></select>
+              <button className="button button-secondary compact sort-direction" onClick={() => { setDirection(direction === 'asc' ? 'desc' : 'asc'); setCatalogPage(0); }} aria-label="Toggle sort direction">{direction === 'asc' ? '↑ Ascending' : '↓ Descending'}</button>
             </div>
-            {productsLoading ? <div className="empty-state">Loading fresh products…</div>
-              : products.length ? <div className="product-grid">{products.map(p => <ProductCard key={p.id} product={p}/>)}</div>
-              : <div className="empty-state"><span>🌾</span><h3>No products found</h3><p>Try a different search or filter.</p><button className="button button-secondary" onClick={() => { setSearch(''); setType(''); setCategoryId(''); setMinPrice(''); setMaxPrice(''); setCatalogPage(0); }}>Clear filters</button></div>}
+            {hasActiveFilters && <div className="active-filter-row"><span>Showing results for your selection</span><button type="button" onClick={clearCatalogFilters}>Clear all filters ×</button></div>}
+            {productsLoading
+              ? <div className="product-grid skeleton-grid" aria-label="Loading products">{[0, 1, 2, 3].map(item => <div key={item} className="skeleton-card"><div className="skeleton-image"></div><div className="skeleton-line"></div><div className="skeleton-line short"></div><div className="skeleton-button"></div></div>)}</div>
+              : products.length
+                ? <div className="product-grid">{products.map(p => <ProductCard key={p.id} product={p}/>)}</div>
+                : <div className="empty-state catalog-empty">
+                    <div className="empty-state-icon" aria-hidden="true">{hasActiveFilters ? '⌕' : '🌾'}</div>
+                    <span className="eyebrow">{hasActiveFilters ? 'TRY ANOTHER SEARCH' : 'THE SHELF IS READY'}</span>
+                    <h3>{hasActiveFilters ? 'No matches this time.' : 'Your next favourite starts here.'}</h3>
+                    <p>{hasActiveFilters ? 'We could not find a product that matches every filter. Clear a filter or try a different search.' : 'Products will show up here as soon as a seller publishes a listing. Browse the formats above or come back shortly.'}</p>
+                    <div className="empty-state-actions">
+                      {hasActiveFilters && <button className="button button-secondary" onClick={clearCatalogFilters}>Clear filters</button>}
+                      {['SELLER', 'ADMIN'].includes(user?.role) && !hasActiveFilters && <button className="button button-primary" onClick={() => setPage('seller')}>Open Seller Studio <span aria-hidden="true">↗</span></button>}
+                      {!token && !hasActiveFilters && <button className="button button-secondary" onClick={() => { setPage('auth'); setAuthMode('register'); }}>Create an account</button>}
+                    </div>
+                  </div>}
             {!productsLoading && catalogPages > 1 && <div className="pagination"><button className="button button-secondary compact" disabled={catalogPage <= 0} onClick={() => setCatalogPage(p => Math.max(0, p - 1))}>Previous</button><span>Page {catalogPage + 1} of {catalogPages}</span><button className="button button-secondary compact" disabled={catalogPage + 1 >= catalogPages} onClick={() => setCatalogPage(p => Math.min(catalogPages - 1, p + 1))}>Next</button></div>}
           </section>
         </>}
