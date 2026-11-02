@@ -38,7 +38,8 @@ Cloud-hosting setup and platform-port notes are in [docs/RENDER_RAILWAY_DEPLOYME
 - Use platform secret settings; do not reuse values from `.env.example`.
 - Use a separate least-privilege database account for each service instead of the local MySQL root account.
 - Keep Eureka, database and backend service ports on private networking. Expose only HTTPS frontend/gateway routes.
-- Set `FRONTEND_ORIGIN` to the exact deployed frontend origin and `VITE_API_BASE_URL` to the deployed HTTPS gateway URL at frontend build time.
+- For the included Docker/Nginx frontend, set `API_GATEWAY_URL` to a gateway URL reachable from the frontend container (the Compose default is `http://api-gateway:8080` on the private Docker network). Nginx proxies browser `/api/**` requests to that gateway, so the browser uses same-origin URLs.
+- For a separately hosted static frontend, set `VITE_API_BASE_URL` to the public HTTPS gateway URL at build time and set `FRONTEND_ORIGIN` to the exact frontend origin. Never use `localhost` as the gateway URL in a public frontend build: it points to each visitor's own computer.
 - Configure TLS/HTTPS, rate limiting and secure response headers at the reverse proxy/platform.
 - Replace `DDL_AUTO=update` with a versioned migration tool and schema validation.
 - Use a persistent volume or object storage for images.
