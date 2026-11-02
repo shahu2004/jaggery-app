@@ -21,12 +21,12 @@ export default function BackendStatus() {
         throw new Error('The product catalogue API did not return a valid page.');
       }
 
-      // The cart route is protected. A 401 means the Order Service route is
-      // reachable and correctly enforcing authentication for signed-out users.
+      // The cart route is protected. A 401 or 403 means the Order Service
+      // route is reachable and is enforcing authentication for signed-out users.
       try {
         await api('/api/cart');
       } catch (error) {
-        if (error?.code !== 'UNAUTHORIZED') throw error;
+        if (error?.code !== 'UNAUTHORIZED' && error?.status !== 403) throw error;
       }
 
       setStatus('online');
