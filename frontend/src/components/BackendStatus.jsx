@@ -9,15 +9,31 @@ export default function BackendStatus() {
   const checkConnection = useCallback(async () => {
     setChecking(true);
     try {
-      const result = await api('/api/auth/ping');
-      if (result?.status !== 'running') {
+      const [auth, catalog] = await Promise.all([
+        api('/api/auth/ping'),
+        api('/api/products?page=0&size=1'),
+      ]);
+
+      if (auth?.status !== 'running') {
         throw new Error('The authentication service did not return a healthy status.');
       }
+      if (!Array.isArray(catalog?.content)) {
+        throw new Error('The product catalogue API did not return a valid page.');
+      }
+
+      // The cart route is protected. A 401 means the Order Service route is
+      // reachable and correctly enforcing authentication for signed-out users.
+      try {
+        await api('/api/cart');
+      } catch (error) {
+        if (error?.code !== 'UNAUTHORIZED') throw error;
+      }
+
       setStatus('online');
-      setMessage('Connected to the Jaggery marketplace.');
+      setMessage('Authentication, catalogue and order APIs are reachable.');
     } catch (error) {
       setStatus('offline');
-      setMessage(error?.message || 'The backend could not be reached.');
+      setMessage(error?.message || 'The backend services could not be reached.');
     } finally {
       setChecking(false);
     }
