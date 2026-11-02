@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, imageUrl } from './api.js';
+import BackendStatus from './components/BackendStatus.jsx';
 
 const TYPES = ['BLOCK', 'CUBE', 'POWDER', 'ORGANIC', 'LIQUID'];
 const NEXT_ORDER_STATUSES = {
@@ -88,7 +89,7 @@ export default function App() {
       setCatalogPages(data?.totalPages || 0);
       setCatalogTotal(data?.totalElements || 0);
     } catch (e) {
-      setError(e?.message || 'Unable to load products.');
+      if (e?.code !== 'API_UNREACHABLE') setError(e?.message || 'Unable to load products.');
       setProducts([]);
     } finally {
       setProductsLoading(false);
@@ -422,6 +423,7 @@ export default function App() {
       </header>
 
       <main className="page-wrap">
+        <BackendStatus />
         {notice && <div className="notice success" role="status"><span>✓</span>{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message">×</button></div>}
         {error && <div className="notice error" role="alert"><span>!</span>{error}<button onClick={() => setError('')} aria-label="Dismiss error">×</button></div>}
 
