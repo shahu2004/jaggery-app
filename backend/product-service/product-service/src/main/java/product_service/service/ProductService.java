@@ -88,6 +88,22 @@ public class ProductService {
                 result.getTotalPages());
     }
 
+    @Transactional(readOnly = true)
+    public PageResponse<ProductResponse> listMine(Long sellerId, int page, int size) {
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        Page<Product> result = productRepository.findAllBySellerIdAndActiveTrue(
+                sellerId,
+                PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "id")));
+
+        return new PageResponse<>(
+                result.getContent().stream().map(this::toResponse).toList(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages());
+    }
+
     @Transactional
     public ProductResponse update(Long id, Long userId, String role, ProductRequest request) {
         requireSellerOrAdmin(role);

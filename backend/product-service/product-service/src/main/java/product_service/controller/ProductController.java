@@ -4,6 +4,7 @@ import product_service.dto.PageResponse;
 import product_service.dto.ProductRequest;
 import product_service.dto.ProductResponse;
 import product_service.entity.ProductType;
+import product_service.security.ProductPrincipal;
 import product_service.service.ImageStorageService;
 import product_service.service.ProductService;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,10 +31,10 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<ProductResponse> create(
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader("X-User-Role") String role,
+            @AuthenticationPrincipal ProductPrincipal principal,
             @Valid @RequestBody ProductRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.create(userId, role, request));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(productService.create(principal.userId(), principal.role(), request));
     }
 
     @GetMapping
@@ -50,6 +52,14 @@ public class ProductController {
                 page, size, search, type, minPrice, maxPrice, categoryId, sortBy, direction));
     }
 
+    @GetMapping("/mine")
+    public ResponseEntity<PageResponse<ProductResponse>> mine(
+            @AuthenticationPrincipal ProductPrincipal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ResponseEntity.ok(productService.listMine(principal.userId(), page, size));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(productService.get(id));
@@ -58,28 +68,27 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> update(
             @PathVariable Long id,
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader("X-User-Role") String role,
+            @AuthenticationPrincipal ProductPrincipal principal,
             @Valid @RequestBody ProductRequest request) {
-        return ResponseEntity.ok(productService.update(id, userId, role, request));
+        return ResponseEntity.ok(productService.update(
+                id, principal.userId(), principal.role(), request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader("X-User-Role") String role) {
-        productService.delete(id, userId, role);
+            @AuthenticationPrincipal ProductPrincipal principal) {
+        productService.delete(id, principal.userId(), principal.role());
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> uploadImage(
             @PathVariable Long id,
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestHeader("X-User-Role") String role,
+            @AuthenticationPrincipal ProductPrincipal principal,
             @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(productService.uploadImage(id, userId, role, file));
+        return ResponseEntity.ok(productService.uploadImage(
+                id, principal.userId(), principal.role(), file));
     }
 
     @GetMapping("/images/{filename}")
