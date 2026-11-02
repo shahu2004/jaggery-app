@@ -258,3 +258,26 @@
   .product-meta{font-size:10px}
   .form-row{grid-template-columns:1fr}
 }
+
+
+/* Backend connectivity */
+.backend-status{
+  display:flex;align-items:flex-start;gap:12px;margin:0 0 20px;padding:14px 16px;
+  border:1px solid var(--line);border-radius:14px;background:var(--paper);font-size:12px;
+}
+.backend-status-online{align-items:center;color:#36552a;background:#edf4e8;border-color:#d8e6cf}
+.backend-status-checking{align-items:center;color:#6b684e;background:#f6f2e5;border-color:#e8dfc7}
+.backend-status-offline{justify-content:space-between;align-items:center;gap:18px;color:#85452f;background:#fff0e9;border-color:#f0d2c5}
+.backend-status-dot{display:inline-block;width:9px;height:9px;flex:none;border-radius:50%;background:#4f8a3b;box-shadow:0 0 0 4px rgba(79,138,59,.12)}
+.backend-status-copy{min-width:0}
+.backend-status-copy strong{display:block;margin-bottom:5px;font-size:13px;color:#7a3d29}
+.backend-status-copy p{margin:0 0 6px;line-height:1.55;overflow-wrap:anywhere}
+.backend-status-help{font-size:11px;color:#865640}
+.backend-status-help code{display:inline-block;margin:4px 0 0;padding:7px 10px;border:1px solid #e8c7b7;border-radius:8px;background:#fffaf7;color:#503526;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}
+.backend-status-spinner{width:13px;height:13px;flex:none;border:2px solid #d8d0b9;border-top-color:#7b744f;border-radius:50%;animation:backend-spin .8s linear infinite}
+.backend-retry{flex:none;white-space:nowrap}
+@keyframes backend-spin{to{transform:rotate(360deg)}}
+@media(max-width:700px){
+  .backend-status-offline{align-items:stretch;flex-direction:column}
+  .backend-retry{align-self:flex-start}
+}
