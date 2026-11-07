@@ -16,7 +16,15 @@ A portfolio project for a jaggery marketplace using Java 21, Spring Boot, Spring
 | Eureka Discovery Server | 8761 | Service registry |
 | MySQL | 3306 | Separate `jaggery_auth`, `jaggery_product` and `jaggery_order` databases |
 
-## Run all components locally (recommended)
+## Run in IntelliJ IDEA without Docker (recommended for local development)
+
+See **[INTELLIJ_LOCAL_SETUP.md](INTELLIJ_LOCAL_SETUP.md)** for the full step-by-step Windows setup, five IntelliJ Maven run configurations, required environment variables, MySQL database creation, startup order, and smoke tests.
+
+Important: the repository does not contain a root Maven aggregator POM. Import each service's own `pom.xml` into IntelliJ. Start local MySQL first, then Discovery Server, Auth Service, Product Service, Order Service, and API Gateway. Start React separately from `frontend` with `npm install`, `npm test`, and `npm run dev`.
+
+Create the three local MySQL databases by executing [scripts/create-local-databases.sql](scripts/create-local-databases.sql). Set `DB_USERNAME`, `DB_PASSWORD`, and the same `JWT_SECRET` (at least 32 bytes) in the Auth, Product and Order IntelliJ run configurations. Never commit your local values.
+
+## Run all components locally with Docker (optional)
 
 ### Prerequisites
 
@@ -60,7 +68,7 @@ Admin users can approve customers as sellers through `POST /api/users/{id}/appro
 
 ## Frontend
 
-See [frontend/README.md](frontend/README.md). The frontend defaults to `VITE_API_BASE_URL=http://localhost:8080`. For a deployed frontend, set `VITE_API_BASE_URL` to the public HTTPS gateway URL **at build time**, and set `FRONTEND_ORIGIN` to the exact frontend origin.
+See [frontend/README.md](frontend/README.md). For local Vite development, `VITE_API_BASE_URL` is blank by default and Vite proxies `/api/**` to the local gateway at `http://localhost:8080`. For static hosting, set `VITE_API_BASE_URL` to the public HTTPS gateway URL **at build time**, and set `FRONTEND_ORIGIN` to the exact frontend origin.
 
 Available frontend flows:
 - Product catalog, search, filters, sorting and pagination

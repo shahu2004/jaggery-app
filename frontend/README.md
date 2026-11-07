@@ -2,39 +2,40 @@
 
 React 19 + Vite frontend for the Jaggery marketplace. The UI uses the existing Spring Cloud Gateway API and does not simulate successful sign-in, cart writes, or orders when the backend is offline.
 
-## Recommended: run the complete application
+## Recommended: run the frontend with IntelliJ-hosted backend services
 
-From the repository root:
+Start local MySQL, then start Discovery Server, Auth Service, Product Service, Order Service and API Gateway in IntelliJ IDEA. Follow [INTELLIJ_LOCAL_SETUP.md](../INTELLIJ_LOCAL_SETUP.md) for the exact run configurations and required environment variables.
 
-1. Copy `.env.example` to `.env`.
-2. Replace `MYSQL_ROOT_PASSWORD` and `JWT_SECRET` with local development values. Use a random JWT secret of at least 32 bytes.
-3. Start the complete stack:
+From this `frontend` directory in VS Code or PowerShell:
 
-   ```bash
-   docker compose config
-   docker compose up --build
-   ```
-
-4. Open the frontend at http://localhost:5173.
-
-The frontend's Nginx server proxies same-origin `/api/**` requests to the API Gateway at `http://api-gateway:8080` on the Docker network. The browser therefore does not call its own `localhost` and does not need a cross-origin API URL in the Docker Compose setup.
-
-Keep the terminal running. To stop the stack, press Ctrl+C and run `docker compose down` from the repository root.
-
-## Run the frontend separately
-
-Prerequisites: Node.js 22+ and the complete backend stack already running, with the API Gateway reachable at port 8080.
-
-From this directory:
-
-```bash
-cp .env.example .env
+```powershell
 npm install
 npm test
 npm run dev
 ```
 
-Vite listens on http://localhost:5173 and proxies `/api/**` to `VITE_DEV_API_TARGET` (default: `http://localhost:8080`). If your local API Gateway uses a different address, update that variable in `.env`.
+Open http://localhost:5173. Vite proxies same-origin `/api/**` requests to `http://localhost:8080`; keep API Gateway running. You do not need Docker or a public API URL for this setup.
+
+## Optional: run the complete application with Docker
+
+From the repository root, copy `.env.example` to `.env`, set a local MySQL root password and a random JWT secret of at least 32 bytes, and run:
+
+```bash
+docker compose config
+docker compose up --build
+```
+
+Open http://localhost:5173. The frontend Nginx server proxies `/api/**` to the API Gateway on the Docker network.
+
+## Local API configuration
+
+For the IntelliJ + Vite workflow, no `.env` file is required. By default, Vite proxies `/api/**` to `http://localhost:8080`. If your gateway uses another address, create `.env.local` in this directory and set:
+
+```text
+VITE_DEV_API_TARGET=http://localhost:8080
+```
+
+Keep `VITE_API_BASE_URL` blank during local development so the same-origin Vite proxy is used.
 
 ## Backend connection status
 

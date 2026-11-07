@@ -10,8 +10,8 @@ export class ApiError extends Error {
 }
 
 const backendStartupHelp =
-  'Start the complete application from the repository root with: docker compose up --build. ' +
-  'This starts MySQL, Eureka, all Spring services, the API gateway and the frontend.';
+  'Start local MySQL, then run Discovery Server, Auth Service, Product Service, Order Service and API Gateway in IntelliJ IDEA. ' +
+  'Then start the React frontend from the frontend folder with: npm run dev. See INTELLIJ_LOCAL_SETUP.md in the repository root.';
 
 export async function api(path, { token, method = 'GET', body, headers = {} } = {}) {
   const requestHeaders = { ...headers };
