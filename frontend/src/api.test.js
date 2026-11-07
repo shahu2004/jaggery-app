@@ -37,7 +37,7 @@ test('converts network failures into actionable backend setup guidance', async (
 
   await assert.rejects(api('/api/products'), (error) => {
     assert.equal(error.code, 'API_UNREACHABLE');
-    assert.match(error.message, /docker compose up --build/);
+    assert.match(error.message, /Discovery Server.*Auth Service.*Product Service.*Order Service.*API Gateway.*npm run dev/);
     return true;
   });
 });
