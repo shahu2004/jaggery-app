@@ -67,11 +67,10 @@ export default function BackendStatus() {
         <strong>Marketplace services are not connected</strong>
         <p>{message}</p>
         <p className="backend-status-help">
-          For local development, open a terminal in the project root and run:
-          <code>docker compose up --build</code>
+          For local IntelliJ development, start MySQL and run these Spring Boot services in order: Discovery Server, Auth Service, Product Service, Order Service, then API Gateway.
         </p>
         <p className="backend-status-help">
-          Keep the terminal running, then retry. On a hosted deployment, configure the frontend API URL or its server-side /api proxy to the public API Gateway.
+          Then start React from the frontend folder with <code>npm run dev</code>. See <code>INTELLIJ_LOCAL_SETUP.md</code> for exact steps and environment variables. Retry after all services are running.
         </p>
       </div>
       <button className="button button-secondary backend-retry" type="button" onClick={checkConnection} disabled={checking}>
