@@ -68,7 +68,7 @@ Admin users can approve customers as sellers through `POST /api/users/{id}/appro
 
 ## Frontend
 
-See [frontend/README.md](frontend/README.md). The frontend defaults to `VITE_API_BASE_URL=http://localhost:8080`. For a deployed frontend, set `VITE_API_BASE_URL` to the public HTTPS gateway URL **at build time**, and set `FRONTEND_ORIGIN` to the exact frontend origin.
+See [frontend/README.md](frontend/README.md). For local Vite development, `VITE_API_BASE_URL` is blank by default and Vite proxies `/api/**` to the local gateway at `http://localhost:8080`. For static hosting, set `VITE_API_BASE_URL` to the public HTTPS gateway URL **at build time**, and set `FRONTEND_ORIGIN` to the exact frontend origin.
 
 Available frontend flows:
 - Product catalog, search, filters, sorting and pagination
