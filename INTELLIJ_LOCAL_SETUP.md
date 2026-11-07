@@ -20,10 +20,10 @@ Do not run Maven from the repository root; there is no root `pom.xml`.
 
 Install/start a local MySQL 8.x service. Keep it listening on `localhost:3306`.
 
-Create the three empty databases using MySQL Workbench, or from PowerShell where the MySQL CLI is on PATH:
+Create the three empty databases using MySQL Workbench, or from PowerShell where the MySQL CLI is on PATH (PowerShell does not support Bash-style `<` input redirection):
 
 ```powershell
-mysql -u root -p < scripts/create-local-databases.sql
+Get-Content .\\scripts\\create-local-databases.sql -Raw | mysql -u root -p
 ```
 
 The script creates:
