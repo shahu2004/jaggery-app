@@ -27,20 +27,15 @@ docker compose up --build
 
 Open http://localhost:5173. The frontend Nginx server proxies `/api/**` to the API Gateway on the Docker network.
 
-## Run the frontend separately
+## Local API configuration
 
-Prerequisites: Node.js 22+ and the complete backend stack already running, with the API Gateway reachable at port 8080.
+For the IntelliJ + Vite workflow, no `.env` file is required. By default, Vite proxies `/api/**` to `http://localhost:8080`. If your gateway uses another address, create `.env.local` in this directory and set:
 
-From this directory:
-
-```bash
-cp .env.example .env
-npm install
-npm test
-npm run dev
+```text
+VITE_DEV_API_TARGET=http://localhost:8080
 ```
 
-Vite listens on http://localhost:5173 and proxies `/api/**` to `VITE_DEV_API_TARGET` (default: `http://localhost:8080`). If your local API Gateway uses a different address, update that variable in `.env`.
+Keep `VITE_API_BASE_URL` blank during local development so the same-origin Vite proxy is used.
 
 ## Backend connection status
 
